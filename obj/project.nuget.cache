@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "dgSpecHash": "Bhhco7huSZAlPZHKaZxaCYQydon61Ooxqz3XrLjtUHkhLVQzDhsgOTdvryay/0qdyVHmGvSctB/S8kWNg8l1aQ==",
+  "success": true,
+  "projectFilePath": "D:\\ProgrammingProjects\\C#\\ImageProcessing\\ImageProcessing.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\jthom\\.nuget\\packages\\microsoft.win32.systemevents\\7.0.0\\microsoft.win32.systemevents.7.0.0.nupkg.sha512",
+    "C:\\Users\\jthom\\.nuget\\packages\\system.drawing.common\\7.0.0\\system.drawing.common.7.0.0.nupkg.sha512",
+    "C:\\Users\\jthom\\.nuget\\packages\\microsoft.netcore.app.ref\\6.0.15\\microsoft.netcore.app.ref.6.0.15.nupkg.sha512",
+    "C:\\Users\\jthom\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\6.0.15\\microsoft.windowsdesktop.app.ref.6.0.15.nupkg.sha512",
+    "C:\\Users\\jthom\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\6.0.15\\microsoft.aspnetcore.app.ref.6.0.15.nupkg.sha512",
+    "C:\\Users\\jthom\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\6.0.15\\microsoft.netcore.app.host.win-x64.6.0.15.nupkg.sha512"
+  ],
+  "logs": []
+}
