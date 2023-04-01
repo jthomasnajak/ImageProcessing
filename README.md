@@ -1,4 +1,4 @@
-#Image Processing Exploration
+# Image Processing Exploration
 This repo contains my exploration into writing logic to process images.
 
 Currently, this includes:
