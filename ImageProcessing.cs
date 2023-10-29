@@ -14,6 +14,11 @@
 
     ToDo:
         - improve loading bar. Perhaps by using a windows form?
+        - learn and implement best practices for documentation
+        - implement better naming convention to limit comments
+        - progress bar assumes we are only doing one function on the image, so running 2 processes completes loading bar twice
+            - add a third middle layer that shows current subprocess / total subprocesses?
+        - should also make naming convention more consistent (example: PassedImage, InputImage, PassedBitmap) why not just use one consistently?
 
     - ImagePixelSort
         - decide/implement how sorted pixels will be arranged in new image
@@ -47,21 +52,21 @@ using System.Runtime.Versioning;
 
 public class ImageProcessing
 {
-    static string InputFileLocation = @"D:\ProgrammingProjects\IO folders\ImageProcessing\Input";
-    static string OutputFileLocation = @"D:\ProgrammingProjects\IO folders\ImageProcessing\Output";
+    static string InputFileFolder = @"D:\ProgrammingProjects\IO folders\ImageProcessing\Input";
+    static string OutputFileFolder = @"D:\ProgrammingProjects\IO folders\ImageProcessing\Output";
 
 
     public static void Main()
     {
         Console.WriteLine("Beginning image processing now...");
         LoadingBar ProgressBar = new LoadingBar(Console.CursorLeft, Console.CursorTop);
-        int CurrentImageCount = 0;
-        int TotalNumberOfImages = Directory.GetFiles(InputFileLocation, "*.*", SearchOption.TopDirectoryOnly).Length;
+        int CurrentImage = 0;
+        int TotalNumberOfImages = Directory.GetFiles(InputFileFolder, "*.*", SearchOption.TopDirectoryOnly).Length;
 
-        foreach (string FileName in Directory.GetFiles(InputFileLocation))
+        foreach (string FileName in Directory.GetFiles(InputFileFolder))
         {
-            ProgressBar.SetTotalProgressPercentage(100 * ((double) CurrentImageCount / TotalNumberOfImages));
-            Console.Write("Currently processing image " + ++CurrentImageCount + " of " + TotalNumberOfImages + "\n");
+            ProgressBar.SetTotalProgressPercentage(100 * ((double) CurrentImage / TotalNumberOfImages));
+            Console.Write("Currently processing image " + ++CurrentImage + " of " + TotalNumberOfImages + "\n");
 
             string ImageName = FileName;
 
@@ -77,12 +82,13 @@ public class ImageProcessing
             Bitmap InputImage = new Bitmap(FileName);
 
             // call methods here
-            InvertImage(ProgressBar, ConvertToSingleColorImage(ProgressBar, InputImage, Color.White)).Save(OutputFileLocation + "\\" + ImageName + " in white inverted.jpg");
+            //InvertImage(ProgressBar, ConvertToSingleColorImage(ProgressBar, InputImage, Color.White)).Save(OutputFileLocation + "\\" + ImageName + " in white inverted.jpg");
+            ConvertToSingleColorImage(ProgressBar, InputImage, Color.White).Save(OutputFileFolder + "\\" + ImageName + " in white.jpg");
+            PixelSortByColumns(ProgressBar, InputImage).Save(OutputFileFolder + "\\" + ImageName + " sorted.jpg");
         }
         ProgressBar.SetTotalProgressPercentage(100);
         Console.WriteLine("\nImage processing is complete.\nPress Enter to confirm");
-        Console.ReadKey();
-
+        Console.Read();
     }
 
 
@@ -91,25 +97,26 @@ public class ImageProcessing
     ----- */
     public static Bitmap ConvertToSingleColorImage(LoadingBar ProgressBar, Bitmap PassedImage, Color PassedColor)
     {
+        Bitmap NewImage = new Bitmap(PassedImage);
 
         double BrightnessRatio = 0;
 
-        for (int CurrentRow = 0; CurrentRow < PassedImage.Height; CurrentRow++)
+        for (int CurrentRow = 0; CurrentRow < NewImage.Height; CurrentRow++)
         {
-            for (int CurrentColumn = 0; CurrentColumn < PassedImage.Width; CurrentColumn++)
+            for (int CurrentColumn = 0; CurrentColumn < NewImage.Width; CurrentColumn++)
             {
-                BrightnessRatio = ((double) FindBrightnessAsInt(PassedImage, CurrentColumn, CurrentRow) / 255);
+                BrightnessRatio = ((double) FindBrightnessAsInt(NewImage, CurrentColumn, CurrentRow) / 255);
 
-                PassedImage.SetPixel(CurrentColumn, CurrentRow, Color.FromArgb(
+                NewImage.SetPixel(CurrentColumn, CurrentRow, Color.FromArgb(
                 (int) (BrightnessRatio * PassedColor.A), 
                 (int) (BrightnessRatio * PassedColor.R), 
                 (int) (BrightnessRatio * PassedColor.G), 
                 (int) (BrightnessRatio * PassedColor.B)));
             }
-            ProgressBar.SetSubProcessProgressPercentage(100 * ((double) CurrentRow / (double) PassedImage.Height));
+            ProgressBar.SetSubProcessProgressPercentage(100 * ((double) CurrentRow / (double) NewImage.Height));
         }
 
-        return PassedImage;
+        return NewImage;
     }
 
 
@@ -118,52 +125,57 @@ public class ImageProcessing
     ----- */
     public static Bitmap InvertImage(LoadingBar ProgressBar, Bitmap PassedImage)
     {
+        Bitmap NewImage = new Bitmap(PassedImage);
+
         int NewAlphaValue = 0;
         int NewRedValue = 0;
         int NewGreenValue = 0;
         int NewBlueValue = 0;
 
-        for (int CurrentRow = 0; CurrentRow < PassedImage.Height; CurrentRow++)
+        for (int CurrentRow = 0; CurrentRow < NewImage.Height; CurrentRow++)
         {
-            for (int CurrentColumn = 0; CurrentColumn < PassedImage.Width; CurrentColumn++)
+            for (int CurrentColumn = 0; CurrentColumn < NewImage.Width; CurrentColumn++)
             {
-                NewAlphaValue = (255 - PassedImage.GetPixel(CurrentColumn, CurrentRow).A);
-                NewRedValue = (255 - PassedImage.GetPixel(CurrentColumn, CurrentRow).R);
-                NewGreenValue = (255 - PassedImage.GetPixel(CurrentColumn, CurrentRow).G);
-                NewBlueValue = (255 - PassedImage.GetPixel(CurrentColumn, CurrentRow).B);
-                PassedImage.SetPixel(CurrentColumn, CurrentRow, Color.FromArgb(NewAlphaValue, NewRedValue, NewGreenValue, NewBlueValue));
+                NewAlphaValue = (255 - NewImage.GetPixel(CurrentColumn, CurrentRow).A);
+                NewRedValue = (255 - NewImage.GetPixel(CurrentColumn, CurrentRow).R);
+                NewGreenValue = (255 - NewImage.GetPixel(CurrentColumn, CurrentRow).G);
+                NewBlueValue = (255 - NewImage.GetPixel(CurrentColumn, CurrentRow).B);
+                NewImage.SetPixel(CurrentColumn, CurrentRow, Color.FromArgb(NewAlphaValue, NewRedValue, NewGreenValue, NewBlueValue));
             }
-            ProgressBar.SetSubProcessProgressPercentage(100 * ((double) CurrentRow / (double) PassedImage.Height));
+            ProgressBar.SetSubProcessProgressPercentage(100 * ((double) CurrentRow / (double) NewImage.Height));
         }
 
-        return PassedImage;
+        return NewImage;
     }
 
 
     /* -----
         this method accepts a passed bitmap and inverts the color of each pixel, but inverts around the average color, instead of a total inversion
     ----- */
-    public static Bitmap InvertImageAroundAverage(Bitmap PassedImage)
+    public static Bitmap InvertImageAroundAverage(LoadingBar ProgressBar, Bitmap PassedImage)
     {
+        Bitmap NewImage = new Bitmap(PassedImage);
+
         int NewAlphaValue = 0;
         int NewRedValue = 0;
         int NewGreenValue = 0;
         int NewBlueValue = 0;
-        Color AverageColor = FindAverageColor(PassedImage);
+        Color AverageColor = FindAverageColor(NewImage);
 
-        for (int CurrentRow = 0; CurrentRow < PassedImage.Height; CurrentRow++)
+        for (int CurrentRow = 0; CurrentRow < NewImage.Height; CurrentRow++)
         {
-            for (int CurrentColumn = 0; CurrentColumn < PassedImage.Width; CurrentColumn++)
+            for (int CurrentColumn = 0; CurrentColumn < NewImage.Width; CurrentColumn++)
             {
-                NewAlphaValue = (128 + ((AverageColor.A - PassedImage.GetPixel(CurrentColumn, CurrentRow).A) / 2));
-                NewRedValue = (128 + ((AverageColor.R - PassedImage.GetPixel(CurrentColumn, CurrentRow).R) / 2));
-                NewGreenValue = (128 + ((AverageColor.G - PassedImage.GetPixel(CurrentColumn, CurrentRow).G) / 2));
-                NewBlueValue = (128 + ((AverageColor.B - PassedImage.GetPixel(CurrentColumn, CurrentRow).B) / 2));
-                PassedImage.SetPixel(CurrentColumn, CurrentRow, Color.FromArgb(NewAlphaValue, NewRedValue, NewGreenValue, NewBlueValue));
+                NewAlphaValue = (128 + ((AverageColor.A - NewImage.GetPixel(CurrentColumn, CurrentRow).A) / 2));
+                NewRedValue = (128 + ((AverageColor.R - NewImage.GetPixel(CurrentColumn, CurrentRow).R) / 2));
+                NewGreenValue = (128 + ((AverageColor.G - NewImage.GetPixel(CurrentColumn, CurrentRow).G) / 2));
+                NewBlueValue = (128 + ((AverageColor.B - NewImage.GetPixel(CurrentColumn, CurrentRow).B) / 2));
+                NewImage.SetPixel(CurrentColumn, CurrentRow, Color.FromArgb(NewAlphaValue, NewRedValue, NewGreenValue, NewBlueValue));
             }
+            ProgressBar.SetSubProcessProgressPercentage(100 * ((double) CurrentRow / (double) NewImage.Height));
         }
 
-        return PassedImage;   
+        return NewImage;   
     }
 
     
@@ -172,29 +184,30 @@ public class ImageProcessing
     ----- */
     public static Bitmap PixelSortByRows(LoadingBar ProgressBar, Bitmap PassedImage)
     {
-        Bitmap RowBitmap = new Bitmap(PassedImage.Width, 1);
+        Bitmap NewImage = new Bitmap(PassedImage);
+        Bitmap RowBitmap = new Bitmap(NewImage.Width, 1);
 
         // this loop loops through all of the rows of pixels in the passed bitmap
-        for (int Row = 0; Row < PassedImage.Height; Row++)
+        for (int Row = 0; Row < NewImage.Height; Row++)
         {
             // this loop loops through each pixel in the row, and copies it to the individual row bitmap
-            for (int Column = 0; Column < PassedImage.Width; Column++)
+            for (int Column = 0; Column < NewImage.Width; Column++)
             {
-                RowBitmap.SetPixel(Column, 0, PassedImage.GetPixel(Column, Row));
+                RowBitmap.SetPixel(Column, 0, NewImage.GetPixel(Column, Row));
             }
 
             RowBitmap = ConvertArrayToBitmap(SortColorArray(GeneratePixelArray(RowBitmap)), RowBitmap.Width, 1);
 
             // this loop copies the row bitmap back into the original
-            for (int Column = 0; Column < PassedImage.Width; Column++)
+            for (int Column = 0; Column < NewImage.Width; Column++)
             {
-                PassedImage.SetPixel(Column, Row, RowBitmap.GetPixel(Column, 0));
+                NewImage.SetPixel(Column, Row, RowBitmap.GetPixel(Column, 0));
             }
 
-            ProgressBar.SetSubProcessProgressPercentage(100 * ((double) Row / (double) PassedImage.Height));
+            ProgressBar.SetSubProcessProgressPercentage(100 * ((double) Row / (double) NewImage.Height));
         }
 
-        return PassedImage;
+        return NewImage;
     }
 
 
@@ -203,29 +216,30 @@ public class ImageProcessing
     ----- */
     public static Bitmap PixelSortByColumns(LoadingBar ProgressBar, Bitmap PassedImage)
     {
-        Bitmap RowBitmap = new Bitmap(1, PassedImage.Height);
+        Bitmap NewImage = new Bitmap(PassedImage);
+        Bitmap RowBitmap = new Bitmap(1, NewImage.Height);
 
         // this loop loops through all of the columns of pixels in the passed bitmap
-        for (int Column = 0; Column < PassedImage.Width; Column++)
+        for (int Column = 0; Column < NewImage.Width; Column++)
         {
             // this loop loops through each pixel in the column, and copies it to the individual column bitmap
-            for (int Row = 0; Row < PassedImage.Height; Row++)
+            for (int Row = 0; Row < NewImage.Height; Row++)
             {
-                RowBitmap.SetPixel(0, Row, PassedImage.GetPixel(Column, Row));
+                RowBitmap.SetPixel(0, Row, NewImage.GetPixel(Column, Row));
             }
 
             RowBitmap = ConvertArrayToBitmap(SortColorArray(GeneratePixelArray(RowBitmap)), 1, RowBitmap.Height);
 
             // this loop copies the row bitmap back into the original
-            for (int Row = 0; Row < PassedImage.Height; Row++)
+            for (int Row = 0; Row < NewImage.Height; Row++)
             {
-                PassedImage.SetPixel(Column, Row, RowBitmap.GetPixel(0, Row));
+                NewImage.SetPixel(Column, Row, RowBitmap.GetPixel(0, Row));
             }
 
-            ProgressBar.SetSubProcessProgressPercentage(100 * ((double) Column / (double) PassedImage.Width));
+            ProgressBar.SetSubProcessProgressPercentage(100 * ((double) Column / (double) NewImage.Width));
         }
 
-        return PassedImage;
+        return NewImage;
     }
 
 
@@ -490,16 +504,18 @@ public class ImageProcessing
     ----- */
     public static Bitmap Resize(LoadingBar ProgressBar, Bitmap PassedImage)
     {
+        Bitmap NewImage = new Bitmap(PassedImage);
+
         // minimum width and height required to return image
         int MinimumWidth = 3840;
         int MinimumHeight = 2160;
 
-        while ((PassedImage.Width < MinimumWidth) || (PassedImage.Height < MinimumHeight))
+        while ((NewImage.Width < MinimumWidth) || (NewImage.Height < MinimumHeight))
         {
-            PassedImage = ActualResize(ProgressBar, PassedImage);
+            NewImage = ActualResize(ProgressBar, NewImage);
         }
 
-        return PassedImage;
+        return NewImage;
     }
 
 
@@ -904,6 +920,7 @@ public class ImageProcessing
     {
         // current logic weighs r, g, and b values equally
         //return (int) ((PassedImage.GetPixel(PositionX, PositionY).R + PassedImage.GetPixel(PositionX, PositionY).G + PassedImage.GetPixel(PositionX, PositionY).B) / 3);
+
         // below formula returns Luminance
         return (int) ((PassedImage.GetPixel(PositionX, PositionY).R * 0.3) + (PassedImage.GetPixel(PositionX, PositionY).G * 0.59) + (PassedImage.GetPixel(PositionX, PositionY).B * 0.11));
     }
