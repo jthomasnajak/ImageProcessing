@@ -9,36 +9,6 @@
  *
  *      - ImageToAscii
  *          Goal: input an image and output that image converted into ascii characters.
- *
- *
- * ToDo:
- *      - improve loading bar. Perhaps by using a windows form?
- *      - implement better naming convention to limit comments
- *      - progress bar assumes we are only doing one function on the image, so running 2 processes completes loading bar twice
- *          - add a third middle layer that shows current subprocess / total subprocesses?
- *      - should also make naming convention more consistent (example: PassedImage, InputImage, PassedBitmap) why not just use one consistently?
- *
- *  - ImagePixelSort
- *      - decide/implement how sorted pixels will be arranged in new image
- *      - instead of sorting all pixels in a column/row, have two groups of pixels (determined by contrast)
- *          where one group is sorted, but not the other.
- *
- *  - ImageResizer
- *      - allow using windows explorer to select input folder destination and output folder
- *      - add error catching to verify file location
- *      - asynchronous processing to make it faster?
- *      - find or develop a better algorithm to reduce noise
- *      - the current anisotropic diffusion noise reduction method seems to use a guassian bell curve. Maybe instead of centering this on ~128, center it on median of image?
- *      - current noise reduction makes image more blurry, find improvement
- *      - learn more about anisotropic diffusion noise reduction
- *      - improve edge detection
- *      - I have been assuming the original picture is the most accurate, but perhaps I should try to improve those pixels too.
- *
- *  - ImageToAscii
- *      - add error catching to verify file location
- *      - text file does not zoom easily. perhaps a different file type would be better?
- *      - add edge detection. improve edge detection?
- *      - try different formulas for brightness
 */
 
 using System.Drawing;

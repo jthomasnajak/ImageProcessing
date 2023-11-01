@@ -6,3 +6,6 @@ Currently, this includes:
 - converting the image to be monochrome
 - sorting the pixels within the image
 - resizing the image to a larger resolution
+
+Future feature list and improvements can be found here:
+https://trello.com/b/MdeHsNT2/image-processing-desired-feature-list
