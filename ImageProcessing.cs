@@ -1,48 +1,45 @@
-/* --------------------
-    Project: ImageProcessing
-    Goal: this project will be a consolidation of my current image projects as well as including any future image processing projects
-        - ImagePixelSort
-            Goal: receive an image as input, and output a new image consisting of the same pixels, 
-            but sorted.
-
-        - ImageResizer
-            Goal: receive an input folder full of image files, iterate through the folder upsizing each image and output the upsized versions to an output folder 
-
-        - ImageToAscii
-            Goal: input an image and output that image converted into ascii characters.
-
-
-    ToDo:
-        - improve loading bar. Perhaps by using a windows form?
-        - learn and implement best practices for documentation
-        - implement better naming convention to limit comments
-        - progress bar assumes we are only doing one function on the image, so running 2 processes completes loading bar twice
-            - add a third middle layer that shows current subprocess / total subprocesses?
-        - should also make naming convention more consistent (example: PassedImage, InputImage, PassedBitmap) why not just use one consistently?
-
-    - ImagePixelSort
-        - decide/implement how sorted pixels will be arranged in new image
-        - instead of sorting all pixels in a column/row, have two groups of pixels (determined by contrast)
-            where one group is sorted, but not the other.
-
-    - ImageResizer
-        - allow using windows explorer to select input folder destination and output folder
-        - add error catching to verify file location
-        - asynchronous processing to make it faster?
-        - find or develop a better algorithm to reduce noise
-        - the current anisotropic diffusion noise reduction method seems to use a guassian bell curve. Maybe instead of centering this on ~128, center it on median of image?
-        - current noise reduction makes image more blurry, find improvement
-        - learn more about anisotropic diffusion noise reduction
-        - improve edge detection
-        - I have been assuming the original picture is the most accurate, but perhaps I should try to improve those pixels too.
-
-    - ImageToAscii
-        - add error catching to verify file location
-        - text file does not zoom easily. perhaps a different file type would be beter?
-        - add edge detection. improve edge detection?
-        - try different formulas for brightness
-
--------------------- */
+/**
+ *  Project: ImageProcessing
+ *  Goal: this project will be a consolidation of my current image projects as well as including any future image processing projects
+ *      - ImagePixelSort
+ *          Goal: receive an image as input, and output a new image consisting of the same pixels, but sorted.
+ *
+ *      - ImageResizer
+ *          Goal: receive an input folder full of image files, iterate through the folder upsizing each image and output the upsized versions to an output folder 
+ *
+ *      - ImageToAscii
+ *          Goal: input an image and output that image converted into ascii characters.
+ *
+ *
+ * ToDo:
+ *      - improve loading bar. Perhaps by using a windows form?
+ *      - implement better naming convention to limit comments
+ *      - progress bar assumes we are only doing one function on the image, so running 2 processes completes loading bar twice
+ *          - add a third middle layer that shows current subprocess / total subprocesses?
+ *      - should also make naming convention more consistent (example: PassedImage, InputImage, PassedBitmap) why not just use one consistently?
+ *
+ *  - ImagePixelSort
+ *      - decide/implement how sorted pixels will be arranged in new image
+ *      - instead of sorting all pixels in a column/row, have two groups of pixels (determined by contrast)
+ *          where one group is sorted, but not the other.
+ *
+ *  - ImageResizer
+ *      - allow using windows explorer to select input folder destination and output folder
+ *      - add error catching to verify file location
+ *      - asynchronous processing to make it faster?
+ *      - find or develop a better algorithm to reduce noise
+ *      - the current anisotropic diffusion noise reduction method seems to use a guassian bell curve. Maybe instead of centering this on ~128, center it on median of image?
+ *      - current noise reduction makes image more blurry, find improvement
+ *      - learn more about anisotropic diffusion noise reduction
+ *      - improve edge detection
+ *      - I have been assuming the original picture is the most accurate, but perhaps I should try to improve those pixels too.
+ *
+ *  - ImageToAscii
+ *      - add error catching to verify file location
+ *      - text file does not zoom easily. perhaps a different file type would be better?
+ *      - add edge detection. improve edge detection?
+ *      - try different formulas for brightness
+*/
 
 using System.Drawing;
 using System.Runtime.Versioning;
@@ -50,16 +47,24 @@ using System.Runtime.Versioning;
 [SupportedOSPlatform("windows")]
 
 
+/**
+ * Class <c>ImageProcessing</c> currently contains all processing logic.
+ */
 public class ImageProcessing
 {
     static string InputFileFolder = @"D:\ProgrammingProjects\IO folders\ImageProcessing\Input";
     static string OutputFileFolder = @"D:\ProgrammingProjects\IO folders\ImageProcessing\Output";
 
+    static LoadingBar ProgressBar = new LoadingBar(Console.CursorLeft, Console.CursorTop);
 
+    /**
+     * <summary>
+     * This is the main method entry point.
+     * </summary>
+     */
     public static void Main()
     {
         Console.WriteLine("Beginning image processing now...");
-        LoadingBar ProgressBar = new LoadingBar(Console.CursorLeft, Console.CursorTop);
         int CurrentImage = 0;
         int TotalNumberOfImages = Directory.GetFiles(InputFileFolder, "*.*", SearchOption.TopDirectoryOnly).Length;
 
@@ -83,8 +88,8 @@ public class ImageProcessing
 
             // call methods here
             //InvertImage(ProgressBar, ConvertToSingleColorImage(ProgressBar, InputImage, Color.White)).Save(OutputFileLocation + "\\" + ImageName + " in white inverted.jpg");
-            ConvertToSingleColorImage(ProgressBar, InputImage, Color.White).Save(OutputFileFolder + "\\" + ImageName + " in white.jpg");
-            PixelSortByColumns(ProgressBar, InputImage).Save(OutputFileFolder + "\\" + ImageName + " sorted.jpg");
+            ConvertToSingleColorImage(InputImage, Color.White).Save(OutputFileFolder + "\\" + ImageName + " in white.jpg");
+            PixelSortByColumns(InputImage).Save(OutputFileFolder + "\\" + ImageName + " sorted.jpg");
         }
         ProgressBar.SetTotalProgressPercentage(100);
         Console.WriteLine("\nImage processing is complete.\nPress Enter to confirm");
@@ -92,14 +97,21 @@ public class ImageProcessing
     }
 
 
-    /* -----
-        this method accepts a passed bitmap and converts each pixel into a value of only a single color
-    ----- */
-    public static Bitmap ConvertToSingleColorImage(LoadingBar ProgressBar, Bitmap PassedImage, Color PassedColor)
+    /**
+     * <summary>
+     * This method accepts a passed Bitmap and converts each pixel into a value of a single color.
+     * </summary>
+     * <param name="PassedImage"> This is the Bitmap to be copied and converted to contain a single color. </param>
+     * <param name="PassedColor"> The desired color for the generated image. </param>
+     * <returns>
+     * A copy of the passed Bitmap now in only the passed color.
+     * </returns>
+     */
+    public static Bitmap ConvertToSingleColorImage(Bitmap PassedImage, Color PassedColor)
     {
         Bitmap NewImage = new Bitmap(PassedImage);
 
-        double BrightnessRatio = 0;
+        double BrightnessRatio;
 
         for (int CurrentRow = 0; CurrentRow < NewImage.Height; CurrentRow++)
         {
@@ -120,17 +132,23 @@ public class ImageProcessing
     }
 
 
-    /* -----
-        this method accepts a passed bitmap and inverts the color of each pixel
-    ----- */
-    public static Bitmap InvertImage(LoadingBar ProgressBar, Bitmap PassedImage)
+    /**
+     * <summary>
+     * this method accepts a passed Bitmap and inverts the color of each pixel.
+     * </summary>
+     * <param name="PassedImage"> This is the Bitmap to be edited.</param>
+     * <returns>
+     * A copy of the passed Bitmap with the inverted colors.
+     * </returns>
+     */
+    public static Bitmap InvertImage(Bitmap PassedImage)
     {
         Bitmap NewImage = new Bitmap(PassedImage);
 
-        int NewAlphaValue = 0;
-        int NewRedValue = 0;
-        int NewGreenValue = 0;
-        int NewBlueValue = 0;
+        int NewAlphaValue;
+        int NewRedValue;
+        int NewGreenValue;
+        int NewBlueValue;
 
         for (int CurrentRow = 0; CurrentRow < NewImage.Height; CurrentRow++)
         {
@@ -149,17 +167,23 @@ public class ImageProcessing
     }
 
 
-    /* -----
-        this method accepts a passed bitmap and inverts the color of each pixel, but inverts around the average color, instead of a total inversion
-    ----- */
-    public static Bitmap InvertImageAroundAverage(LoadingBar ProgressBar, Bitmap PassedImage)
+    /**
+     * <summary>
+     * This method accepts a passed Bitmap and inverts the color of each pixel, but inverts around the average color, instead of a total inversion
+     * </summary>
+     * <param name="PassedImage"> This is the Bitmap to be inverted. </param>
+     * <returns>
+     * A copy of the passed Bitmap with inverted colors around the average color.
+     * </returns>
+     */
+    public static Bitmap InvertImageAroundAverage(Bitmap PassedImage)
     {
         Bitmap NewImage = new Bitmap(PassedImage);
 
-        int NewAlphaValue = 0;
-        int NewRedValue = 0;
-        int NewGreenValue = 0;
-        int NewBlueValue = 0;
+        int NewAlphaValue;
+        int NewRedValue;
+        int NewGreenValue;
+        int NewBlueValue;
         Color AverageColor = FindAverageColor(NewImage);
 
         for (int CurrentRow = 0; CurrentRow < NewImage.Height; CurrentRow++)
@@ -178,19 +202,25 @@ public class ImageProcessing
         return NewImage;   
     }
 
-    
-    /* -----
-        this method takes a passed bitmap, and breaks each row into its own bitmap to be sorted. Then copies that bitmap back into the original.
-    ----- */
-    public static Bitmap PixelSortByRows(LoadingBar ProgressBar, Bitmap PassedImage)
+
+    /**
+     * <summary>
+     * This method takes a passed Bitmap, breaks each row into its own Bitmap to be sorted, then copies each row Bitmap into a new Bitmap.
+     * </summary>
+     * <param name="PassedImage"> This is the Bitmap to have its pixels sorted. </param>
+     * <returns>
+     * A copy of the passed Bitmap with each row of pixels sorted.
+     * </returns>
+     */
+    public static Bitmap PixelSortByRows(Bitmap PassedImage)
     {
         Bitmap NewImage = new Bitmap(PassedImage);
         Bitmap RowBitmap = new Bitmap(NewImage.Width, 1);
 
-        // this loop loops through all of the rows of pixels in the passed bitmap
+        // this loop loops through all of the rows of pixels in the passed Bitmap
         for (int Row = 0; Row < NewImage.Height; Row++)
         {
-            // this loop loops through each pixel in the row, and copies it to the individual row bitmap
+            // this loop loops through each pixel in the row, and copies it to the individual row Bitmap
             for (int Column = 0; Column < NewImage.Width; Column++)
             {
                 RowBitmap.SetPixel(Column, 0, NewImage.GetPixel(Column, Row));
@@ -198,7 +228,7 @@ public class ImageProcessing
 
             RowBitmap = ConvertArrayToBitmap(SortColorArray(GeneratePixelArray(RowBitmap)), RowBitmap.Width, 1);
 
-            // this loop copies the row bitmap back into the original
+            // this loop copies the row Bitmap back into the original
             for (int Column = 0; Column < NewImage.Width; Column++)
             {
                 NewImage.SetPixel(Column, Row, RowBitmap.GetPixel(Column, 0));
@@ -211,18 +241,24 @@ public class ImageProcessing
     }
 
 
-    /* -----
-        this method takes a passed bitmap, and breaks each column into its own bitmap to be sorted. Then copies that bitmap back into the original.
-    ----- */
-    public static Bitmap PixelSortByColumns(LoadingBar ProgressBar, Bitmap PassedImage)
+    /**
+     * <summary>
+     * This method takes a passed Bitmap, breaks each column into its own Bitmap to be sorted, then copies each column Bitmap into a new Bitmap.
+     * </summary>
+     * <param name="PassedImage"> This is the Bitmap to have its pixels sorted. </param>
+     * <returns>
+     * A copy of the passed Bitmap with each column of pixels sorted.
+     * </returns>
+     */
+    public static Bitmap PixelSortByColumns(Bitmap PassedImage)
     {
         Bitmap NewImage = new Bitmap(PassedImage);
         Bitmap RowBitmap = new Bitmap(1, NewImage.Height);
 
-        // this loop loops through all of the columns of pixels in the passed bitmap
+        // this loop loops through all of the columns of pixels in the passed Bitmap
         for (int Column = 0; Column < NewImage.Width; Column++)
         {
-            // this loop loops through each pixel in the column, and copies it to the individual column bitmap
+            // this loop loops through each pixel in the column, and copies it to the individual column Bitmap
             for (int Row = 0; Row < NewImage.Height; Row++)
             {
                 RowBitmap.SetPixel(0, Row, NewImage.GetPixel(Column, Row));
@@ -230,7 +266,7 @@ public class ImageProcessing
 
             RowBitmap = ConvertArrayToBitmap(SortColorArray(GeneratePixelArray(RowBitmap)), 1, RowBitmap.Height);
 
-            // this loop copies the row bitmap back into the original
+            // this loop copies the row Bitmap back into the original
             for (int Row = 0; Row < NewImage.Height; Row++)
             {
                 NewImage.SetPixel(Column, Row, RowBitmap.GetPixel(0, Row));
@@ -243,9 +279,20 @@ public class ImageProcessing
     }
 
 
-    /* -----
-        this method converts a passed Color Array into a Bitmap.
-    ----- */
+    /**
+     * <summary>
+     * This method converts a passed Color Array into a Bitmap.
+     * </summary>
+     * <param name="PassedColorArray"> This is the Color array to be converted. </param>
+     * <param name="PassedWidth"> This is the width of the generated Bitmap. </param>
+     * <param name="PassedHeight"> This is the height of the generated Bitmap. </param>
+     * <returns>
+     * A new Bitmap of size PassedWidth by PassedHeight using the colors from the color array.
+     * </returns>
+     * <exception cref="ArgumentException">
+     * Thrown if PassedWidth or PassedHeight are negative, or if the passed width and height values don't match the color array size.
+     * </exception>
+     */
     public static Bitmap ConvertArrayToBitmap(Color[] PassedColorArray, int PassedWidth, int PassedHeight)
     {
         if (PassedColorArray.Length != (PassedWidth * PassedHeight))
@@ -271,9 +318,19 @@ public class ImageProcessing
         return ReturnBitmap;
     }
 
-    /* -----
-        this method generates an array with the pixels in the passed bitmap
-    ----- */
+
+    /**
+     * <summary>
+     * This method generates a color array from the pixels in the passed Bitmap.
+     * </summary>
+     * <param name="PassedImage"> This is the Bitmap to be converted into a color array. </param>
+     * <returns>
+     * A Color array representing the pixels in the passed Bitmap.
+     * </returns>
+     * <exception cref="ArgumentException">
+     * Thrown if the passed Bitmap is null.
+     * </exception>
+     */
     public static Color[] GeneratePixelArray(Bitmap PassedImage)
     {
         if (PassedImage == null)
@@ -295,10 +352,15 @@ public class ImageProcessing
     }
 
 
-    /* -----
-        this method accepts an array of colors, and sorts them
-        currently uses Merge Sort
-    ----- */
+    /**
+     * <summary>
+     * This method accepts an array of colors and sorts them using MergeSort.
+     * </summary>
+     * <param name="ArrayToSort"> This is the array to be sorted. </param>
+     * <returns>
+     * The sorted array.
+     * </returns>
+     */
     public static Color[] SortColorArray(Color[] ArrayToSort)
     {
         //return ColorArrayQuickSort(ArrayToSort, 0, ArrayToSort.Length - 1);
@@ -306,9 +368,15 @@ public class ImageProcessing
     }
 
 
-    /* -----
-        this method uses a recursive merge sort algorithm on the passed Color array
-    ----- */
+    /**
+     * <summary>
+     * This method uses a recursive merge sort algorithm to sort the passed color array.
+     * </summary>
+     * <param name="ArrayToSort"> This is the array to be sorted. </param>
+     * <returns>
+     * The sorted array.
+     * </returns>
+     */
     public static Color[] ColorArrayMergeSort(Color[] ArrayToSort)
     {
         if(ArrayToSort.Length == 1)
@@ -339,6 +407,16 @@ public class ImageProcessing
     }
 
     
+    /**
+     * <summary>
+     * This is a merge function to help the MergeSort function. It accepts two sorted arrays and merges them into one sorted array.
+     * </summary>
+     * <param name="FirstArray"> This is the first sorted array to be merged. </param>
+     * <param name="SecondArray"> This is the second sorted array to be merged. </param>
+     * <returns>
+     * A new array that contains all elements from the two array parameters.
+     * </returns>
+     */
     public static Color[] ColorArrayMerge(Color[] FirstArray, Color[] SecondArray)
     {
         Color[] ReturnArray = new Color[(FirstArray.Length + SecondArray.Length)];
@@ -376,6 +454,17 @@ public class ImageProcessing
     /* -----
         this method uses a recursive quick sort algorithm on the passed Color array
     ----- */
+    /**
+     * <summary>
+     * This method uses a recursive quick sort algorithm on the passed Color array.
+     * </summary>
+     * <param name="ArrayToSort"> This is the array to be sorted. </param>
+     * <param name="LeftIndex"> This is the left index of the range. </param>
+     * <param name="RightIndex"> This is the right index of the range. </param>
+     * <returns>
+     * The sorted array.
+     * </returns>
+     */
     public static Color[] ColorArrayQuickSort(Color[] ArrayToSort, int LeftIndex, int RightIndex)
     {
         while (LeftIndex < RightIndex)
@@ -396,6 +485,18 @@ public class ImageProcessing
         return ArrayToSort;
     }
 
+
+    /**
+     * <summary>
+     * 
+     * </summary>
+     * <param name="ArrayToSort"> This is the array to be sorted. </param>
+     * <param name="LeftIndex"> This is the left index of the range. </param>
+     * <param name="RightIndex"> This is the right index of the range. </param>
+     * <returns>
+     * The pivot index that the array is sorted around.
+     * </returns>
+     */
     public static int ColorArrayQuickSortPartition(Color[] ArrayToSort, int LeftIndex, int RightIndex)
     {
         Color PivotValue = ArrayToSort[(LeftIndex + RightIndex) / 2];
@@ -431,10 +532,20 @@ public class ImageProcessing
     }
 
 
-    /* -----
-        this method compares the passed colors
-        currently simply compares the average rgb value of the colors
-    ----- */
+    /**
+     * <summary>
+     * This method compares the passed colors by comparing the average rgb value of the colors.
+     * </summary>
+     * <param name="Operation"> The operation to use to compare the two colors. </param>
+     * <param name="FirstColor"> The first color to be compared. </param>
+     * <param name="SecondColor"> The second color to be compared. </param>
+     * <returns>
+     * A boolean value representing how the first value compares to the second value with the passed operator.
+     * </returns>
+     * <exception cref="ArgumentException">
+     * Thrown if the passed operation is not supported.
+     * </exception>
+     */
     public static Boolean CompareColors(string Operation, Color FirstColor, Color SecondColor)
     {
         double FirstColorRGBAverage = ((FirstColor.R + FirstColor.G + FirstColor.B) / 3);
@@ -463,9 +574,15 @@ public class ImageProcessing
     }
     
 
-    /* -----
-    this method accepts a bitmap and finds the average color value
-    ----- */
+    /**
+     * <summary>
+     * This method accepts a Bitmap and finds the average color value of all pixels.
+     * </summary>
+     * <param name="PassedImage"> This is the Bitmap to find the average value for. </param>
+     * <returns>
+     * A Color representing the average color of all pixels in the passed Bitmap.
+     * </returns>
+     */
     public static Color FindAverageColor(Bitmap PassedImage)
     {
         long AverageAlphaValue = 0;
@@ -498,11 +615,16 @@ public class ImageProcessing
     }
 
 
-    /* -----
-        this method accepts a bitmap as input, and then calls the ActualResize method on it, until it is of a minimum size.
-        should be updated to also call noise reduction on the image
-    ----- */
-    public static Bitmap Resize(LoadingBar ProgressBar, Bitmap PassedImage)
+    /**
+     * <summary>
+     * This method accepts a Bitmap as input and then calls the ActualResize method on it until it is of a minimum size.
+     * </summary>
+     * <param name="PassedImage"> This is the Bitmap to be resized. </param>
+     * <returns>
+     * A copy of the Bitmap increased to a minimum size.
+     * </returns>
+     */
+    public static Bitmap Resize(Bitmap PassedImage)
     {
         Bitmap NewImage = new Bitmap(PassedImage);
 
@@ -512,22 +634,32 @@ public class ImageProcessing
 
         while ((NewImage.Width < MinimumWidth) || (NewImage.Height < MinimumHeight))
         {
-            NewImage = ActualResize(ProgressBar, NewImage);
+            NewImage = ActualResize(NewImage);
         }
 
         return NewImage;
     }
 
 
-    /* -----
-        this method accepts a bitmap as input, and returns a bitmap of double the size. it currently calls GetAverageColor to determine what color to use for newly created pixels.
-        this method shouldn't be called directly, instead call from Resize.
-    ----- */  
-    private static Bitmap ActualResize(LoadingBar ProgressBar, Bitmap InputImage)
+    /**
+     * <summary>
+     * This method accepts a Bitmap as input and returns a Bitmap of double the size. 
+     * It currently calls GetAverageColor to determine what color to use for newly created pixels.
+     * This method shouldn't be called directly, instead call from Resize.
+     * </summary>
+     * <param name="InputImage"> This is the Bitmap to be resized. </param>
+     * <returns>
+     * A copy of the Bitmap at double the width and double the height.
+     * </returns>
+     * <exception cref="ArgumentException">
+     * Thrown if the passed Bitmap is null.
+     * </exception>
+     */
+    private static Bitmap ActualResize(Bitmap InputImage)
     {
         if (InputImage != null)
         {
-            // for newly created bitmaps, all pixels are given rgb value 0, 0, 0
+            // for newly created Bitmaps, all pixels are given rgb value 0, 0, 0
             Bitmap OutputImage = new Bitmap((InputImage.Width * 2), (InputImage.Height * 2));
 
             // loop through input image pixels and copy them to their new position. 
@@ -591,14 +723,23 @@ public class ImageProcessing
     }
 
 
-    /* -----
-        this method just magnifies the input image, creating a four pixel square for each input pixel
-    ----- */
-    private static Bitmap Magnify(LoadingBar ProgressBar, Bitmap PassedBitmap)
+    /**
+     * <summary>
+     * This method magnifies the input image, creating a four pixel square for each pixel.
+     * </summary>
+     * <param name="PassedBitmap"> This is the Bitmap to be magnified. </param>
+     * <returns>
+     * A copy of the passed Bitmap at double the width and double the height.
+     * </returns>
+     * <exception cref="ArgumentException">
+     * Thrown if the passed Bitmap is null.
+     * </exception>
+     */
+    private static Bitmap Magnify(Bitmap PassedBitmap)
     {
         if (PassedBitmap != null)
         {
-            double Progress = 0;
+            double Progress;
             Bitmap OutputImage = new Bitmap((PassedBitmap.Width * 2), (PassedBitmap.Height * 2));
 
             for (int j = 0; j < PassedBitmap.Height; j++)
@@ -624,17 +765,35 @@ public class ImageProcessing
     }
 
 
-    /* -----
-        this method finds the average (mean) color of a given set of pixels depending on the input:
-        horiz: averages only pixels to the left and right of passed pixel
-        vert: averages only pixels above and below the passed pixel
-        diag: averages pixels diagonal to the passed pixel
-    ----- */
+    /**
+     * <summary>
+     * this method finds the average (mean) color of a given set of pixels depending on the input:
+     * horiz: averages only pixels to the left and right of passed pixel
+     * vert: averages only pixels above and below the passed pixel
+     * diag: averages pixels diagonal to the passed pixel
+     * </summary>
+     * <param name="ComparisonDirection"> This is the direction to compare pixels. </param>
+     * <param name="PassedImage"> This is the passed Bitmap to compare pixels in. </param>
+     * <param name="CurrentPixelX"> This is the current pixels X position. </param>
+     * <param name="CurrentPixelY"> this is the current pixels Y position. </param>
+     * <returns>
+     * 
+     * </returns>
+     * <exception cref="ArgumentException">
+     * Thrown if the passed Bitmap is null.
+     * or
+     * The passed X position is less than zero or greater than the passed Bitmap's width.
+     * or
+     * The passed Y position is less than zero or greater than the passed Bitmap's height.
+     * or
+     * The passed comparison direction is not supported.
+     * </exception>
+     */
     private static Color GetAverageColor(string ComparisonDirection, Bitmap PassedImage, int CurrentPixelX, int CurrentPixelY)
     {
         if (PassedImage == null)
         {
-            throw new ArgumentException("passed bitmap paramter for PassedImage is null");
+            throw new ArgumentException("passed Bitmap cannot be null");
         }
 
         if (CurrentPixelX >= 0 && CurrentPixelY >= 0 && CurrentPixelX < PassedImage.Width && CurrentPixelY < PassedImage.Height)
@@ -689,7 +848,7 @@ public class ImageProcessing
         }
         else
         {
-            throw new ArgumentException("Passed X and Y values must be greater than 0 and less than the passed bitmap's width and height respectively");
+            throw new ArgumentException("Passed X and Y values must be greater than 0 and less than the passed Bitmap's width and height respectively");
         }
     }
 
@@ -702,7 +861,7 @@ public class ImageProcessing
     /// <param name="lambda">The shape of the diffusion coefficient g(), controlling the Perona Malik diffusion g(delta) = 1/((1 +  delta2)  / lambda2). Upper = more blurred image & more noise removed</param>
     /// <param name="iterations">Determines the maximum number of iteration steps of the filter. Upper = less speed & more noise removed</param>
 
-    private static Bitmap ADReduceNoise(LoadingBar ProgressBar, Bitmap PassedImage, double dt, int lambda, int iterations)
+    private static Bitmap ADReduceNoise(Bitmap PassedImage, double dt, int lambda, int iterations)
     {
         if (PassedImage != null)
         {
@@ -715,7 +874,7 @@ public class ImageProcessing
             if (iterations <= 0)
                 throw new Exception("Iterations must be greater than 0");
 
-            //Make temp bitmap
+            //Make temp Bitmap
             Bitmap ReturnBitmap = (Bitmap) PassedImage.Clone();
 
             //Precalculate tables (for speed up)
@@ -793,16 +952,24 @@ public class ImageProcessing
         }
         else
         {
-            throw new ArgumentException("Passed bitmap cannot be null");
+            throw new ArgumentException("Passed Bitmap cannot be null");
         }
     }
 
 
-    /* -----
-        this method will search the passed bitmap for pixels that lie on an edge and update the pixels
-        currently checks only pixels that were copied directly from original image, and updates newly created pixels
-    ----- */
-    private static Bitmap SharpenEdges(LoadingBar ProgressBar, Bitmap PassedImage)
+    /**
+     * <summary>
+     * This method searches the passed Bitmap for pixels that lie on an edge and updates the pixels.
+     * </summary>
+     * <param name="PassedImage"> This is the Bitmap to be processed. </param>
+     * <returns>
+     * A copy of the passed Bitmap
+     * </returns>
+     * <exception cref="ArgumentException">
+     * Thrown if the passed Bitmap is null.
+     * </exception>
+     */
+    private static Bitmap SharpenEdges(Bitmap PassedImage)
     {
         if (PassedImage != null)
         {
@@ -882,9 +1049,16 @@ public class ImageProcessing
     }
 
 
-    /* -----
-        this method accepts a bitmap and converts it into ascii characters, then saves the created text file
-    ----- */
+    /**
+     * <summary>
+     * This method accepts a Bitmap and converts it into ASCII characters, then saves it as a text file.
+     * </summary>
+     * <param name="PassedImage"> This is the Bitmap to be converted into ASCII characters. </param>
+     * <param name="PassedFileName"> This is the filename the ASCII character text file will be saved as. </param>"
+     * <exception cref="ArgumentException">
+     * Thrown if the passed Bitmap is null.
+     * </exception>
+     */
     private static void ConvertImageToAscii(Bitmap PassedImage, string PassedFileName)
     {
 
@@ -908,17 +1082,25 @@ public class ImageProcessing
         }
         else
         {
-            throw new ArgumentException("Passed bitmap cannot be null");
+            throw new ArgumentException("Passed Bitmap cannot be null");
         }
     }
 
 
-    /* -----
-        this method returns the converted brightness value for the passed pixel in the passed bitmap
-    ----- */
+    /**
+     * <summary>
+     * This method returns the calculated brightness value for a specified pixel within a Bitmap.
+     * </summary>
+     * <param name="PassedImage"> This is the Bitmap containing the pixel. </param>
+     * <param name="PositionX"> This is the X position of the pixel. </param>
+     * <param name="PositionY"> This is the Y position of the pixel. </param>
+     * <returns>
+     * An integer representing the calculated brightness for the passed pixel.
+     * </returns>
+     */
     private static int FindBrightnessAsInt(Bitmap PassedImage, int PositionX, int PositionY)
     {
-        // current logic weighs r, g, and b values equally
+        // below formula weighs r, g, and b values equally
         //return (int) ((PassedImage.GetPixel(PositionX, PositionY).R + PassedImage.GetPixel(PositionX, PositionY).G + PassedImage.GetPixel(PositionX, PositionY).B) / 3);
 
         // below formula returns Luminance
@@ -926,9 +1108,18 @@ public class ImageProcessing
     }
 
 
-    /* -----
-        this method will search the passed bitmap for pixels that lie on an edge. Then returns an array representing edges found
-    ----- */
+    /**
+     * <summary>
+     * This method searches the passed Bitmap for pixels that lie on an edge.
+     * </summary>
+     * <param name="PassedImage"> This is the Bitmap to be searched for edges. </param>
+     * <returns>
+     * A char array where each char represents a possible edge that the pixel lies on.
+     * </returns>
+     * <exception cref="ArgumentException">
+     * Thrown if the passed Bitmap is null.
+     * </exception>
+     */
     private static char[,] FindEdges(Bitmap PassedImage)
     {
         if (PassedImage != null)
