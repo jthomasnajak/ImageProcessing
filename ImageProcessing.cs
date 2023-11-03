@@ -52,7 +52,7 @@ public class ImageProcessing
             }
 
             // removes file extension from image file name
-            ImageName = (ImageName.Substring(0, ImageName.IndexOf(".")));
+            ImageName = ImageName.Substring(0, ImageName.IndexOf("."));
             
             Bitmap InputImage = new Bitmap(FileName);
 
@@ -71,15 +71,15 @@ public class ImageProcessing
      * <summary>
      * This method accepts a passed Bitmap and converts each pixel into a value of a single color.
      * </summary>
-     * <param name="PassedImage"> This is the Bitmap to be copied and converted to contain a single color. </param>
-     * <param name="PassedColor"> The desired color for the generated image. </param>
+     * <param name="InputImage"> This is the Bitmap to be copied and converted to contain a single color. </param>
+     * <param name="ColorFilter"> The desired color for the generated image. </param>
      * <returns>
      * A copy of the passed Bitmap now in only the passed color.
      * </returns>
      */
-    public static Bitmap ConvertToSingleColorImage(Bitmap PassedImage, Color PassedColor)
+    public static Bitmap ConvertToSingleColorImage(Bitmap InputImage, Color ColorFilter)
     {
-        Bitmap NewImage = new Bitmap(PassedImage);
+        Bitmap NewImage = new Bitmap(InputImage);
 
         double BrightnessRatio;
 
@@ -87,13 +87,13 @@ public class ImageProcessing
         {
             for (int CurrentColumn = 0; CurrentColumn < NewImage.Width; CurrentColumn++)
             {
-                BrightnessRatio = ((double) FindBrightnessAsInt(NewImage, CurrentColumn, CurrentRow) / 255);
+                BrightnessRatio = (double) FindBrightnessAsInt(NewImage, CurrentColumn, CurrentRow) / 255;
 
                 NewImage.SetPixel(CurrentColumn, CurrentRow, Color.FromArgb(
-                (int) (BrightnessRatio * PassedColor.A), 
-                (int) (BrightnessRatio * PassedColor.R), 
-                (int) (BrightnessRatio * PassedColor.G), 
-                (int) (BrightnessRatio * PassedColor.B)));
+                (int) (BrightnessRatio * ColorFilter.A), 
+                (int) (BrightnessRatio * ColorFilter.R), 
+                (int) (BrightnessRatio * ColorFilter.G), 
+                (int) (BrightnessRatio * ColorFilter.B)));
             }
             ProgressBar.SetSubProcessProgressPercentage(100 * ((double) CurrentRow / (double) NewImage.Height));
         }
@@ -106,14 +106,14 @@ public class ImageProcessing
      * <summary>
      * this method accepts a passed Bitmap and inverts the color of each pixel.
      * </summary>
-     * <param name="PassedImage"> This is the Bitmap to be edited.</param>
+     * <param name="InputImage"> This is the Bitmap to be edited.</param>
      * <returns>
      * A copy of the passed Bitmap with the inverted colors.
      * </returns>
      */
-    public static Bitmap InvertImage(Bitmap PassedImage)
+    public static Bitmap InvertImage(Bitmap InputImage)
     {
-        Bitmap NewImage = new Bitmap(PassedImage);
+        Bitmap NewImage = new Bitmap(InputImage);
 
         int NewAlphaValue;
         int NewRedValue;
@@ -141,14 +141,14 @@ public class ImageProcessing
      * <summary>
      * This method accepts a passed Bitmap and inverts the color of each pixel, but inverts around the average color, instead of a total inversion
      * </summary>
-     * <param name="PassedImage"> This is the Bitmap to be inverted. </param>
+     * <param name="InputImage"> This is the Bitmap to be inverted. </param>
      * <returns>
      * A copy of the passed Bitmap with inverted colors around the average color.
      * </returns>
      */
-    public static Bitmap InvertImageAroundAverage(Bitmap PassedImage)
+    public static Bitmap InvertImageAroundAverage(Bitmap InputImage)
     {
-        Bitmap NewImage = new Bitmap(PassedImage);
+        Bitmap NewImage = new Bitmap(InputImage);
 
         int NewAlphaValue;
         int NewRedValue;
@@ -177,14 +177,14 @@ public class ImageProcessing
      * <summary>
      * This method takes a passed Bitmap, breaks each row into its own Bitmap to be sorted, then copies each row Bitmap into a new Bitmap.
      * </summary>
-     * <param name="PassedImage"> This is the Bitmap to have its pixels sorted. </param>
+     * <param name="InputImage"> This is the Bitmap to have its pixels sorted. </param>
      * <returns>
      * A copy of the passed Bitmap with each row of pixels sorted.
      * </returns>
      */
-    public static Bitmap PixelSortByRows(Bitmap PassedImage)
+    public static Bitmap PixelSortByRows(Bitmap InputImage)
     {
-        Bitmap NewImage = new Bitmap(PassedImage);
+        Bitmap NewImage = new Bitmap(InputImage);
         Bitmap RowBitmap = new Bitmap(NewImage.Width, 1);
 
         // this loop loops through all of the rows of pixels in the passed Bitmap
@@ -215,14 +215,14 @@ public class ImageProcessing
      * <summary>
      * This method takes a passed Bitmap, breaks each column into its own Bitmap to be sorted, then copies each column Bitmap into a new Bitmap.
      * </summary>
-     * <param name="PassedImage"> This is the Bitmap to have its pixels sorted. </param>
+     * <param name="InputImage"> This is the Bitmap to have its pixels sorted. </param>
      * <returns>
      * A copy of the passed Bitmap with each column of pixels sorted.
      * </returns>
      */
-    public static Bitmap PixelSortByColumns(Bitmap PassedImage)
+    public static Bitmap PixelSortByColumns(Bitmap InputImage)
     {
-        Bitmap NewImage = new Bitmap(PassedImage);
+        Bitmap NewImage = new Bitmap(InputImage);
         Bitmap RowBitmap = new Bitmap(1, NewImage.Height);
 
         // this loop loops through all of the columns of pixels in the passed Bitmap
@@ -254,8 +254,8 @@ public class ImageProcessing
      * This method converts a passed Color Array into a Bitmap.
      * </summary>
      * <param name="PassedColorArray"> This is the Color array to be converted. </param>
-     * <param name="PassedWidth"> This is the width of the generated Bitmap. </param>
-     * <param name="PassedHeight"> This is the height of the generated Bitmap. </param>
+     * <param name="ReturnedBitmapWidth"> This is the width of the generated Bitmap. </param>
+     * <param name="ReturnedBitmapHeight"> This is the height of the generated Bitmap. </param>
      * <returns>
      * A new Bitmap of size PassedWidth by PassedHeight using the colors from the color array.
      * </returns>
@@ -263,25 +263,25 @@ public class ImageProcessing
      * Thrown if PassedWidth or PassedHeight are negative, or if the passed width and height values don't match the color array size.
      * </exception>
      */
-    public static Bitmap ConvertArrayToBitmap(Color[] PassedColorArray, int PassedWidth, int PassedHeight)
+    public static Bitmap ConvertArrayToBitmap(Color[] PassedColorArray, int ReturnedBitmapWidth, int ReturnedBitmapHeight)
     {
-        if (PassedColorArray.Length != (PassedWidth * PassedHeight))
+        if (PassedColorArray.Length != (ReturnedBitmapWidth * ReturnedBitmapHeight))
         {
             throw new ArgumentException("Passed values have a mismatch. (PassedWidth * PassedHeight) != PassedColorArray.Length");
         }
 
-        if ((PassedWidth < 1) || (PassedHeight < 1))
+        if ((ReturnedBitmapWidth < 1) || (ReturnedBitmapHeight < 1))
         {
             throw new ArgumentException("PassedWidth and PassedHeight must be greater than 0");
         }
 
-        Bitmap ReturnBitmap = new Bitmap(PassedWidth, PassedHeight);
+        Bitmap ReturnBitmap = new Bitmap(ReturnedBitmapWidth, ReturnedBitmapHeight);
 
-        for (int Row = 0; Row < PassedHeight; Row++)
+        for (int Row = 0; Row < ReturnedBitmapHeight; Row++)
         {
-            for (int Column = 0; Column < PassedWidth; Column++)
+            for (int Column = 0; Column < ReturnedBitmapWidth; Column++)
             {
-                ReturnBitmap.SetPixel(Column, Row, PassedColorArray[(Row * PassedWidth) + Column]);
+                ReturnBitmap.SetPixel(Column, Row, PassedColorArray[(Row * ReturnedBitmapWidth) + Column]);
             }
         }
 
@@ -293,7 +293,7 @@ public class ImageProcessing
      * <summary>
      * This method generates a color array from the pixels in the passed Bitmap.
      * </summary>
-     * <param name="PassedImage"> This is the Bitmap to be converted into a color array. </param>
+     * <param name="InputImage"> This is the Bitmap to be converted into a color array. </param>
      * <returns>
      * A Color array representing the pixels in the passed Bitmap.
      * </returns>
@@ -301,20 +301,20 @@ public class ImageProcessing
      * Thrown if the passed Bitmap is null.
      * </exception>
      */
-    public static Color[] GeneratePixelArray(Bitmap PassedImage)
+    public static Color[] GeneratePixelArray(Bitmap InputImage)
     {
-        if (PassedImage == null)
+        if (InputImage == null)
         {
             throw new ArgumentException("Passed Bitmap cannot be null");
         }
 
-        Color[] PixelArray = new Color[PassedImage.Width * PassedImage.Height];
+        Color[] PixelArray = new Color[InputImage.Width * InputImage.Height];
 
-        for (int Row = 0; Row < PassedImage.Height; Row++)
+        for (int Row = 0; Row < InputImage.Height; Row++)
         {
-            for (int Column = 0; Column < PassedImage.Width; Column++)
+            for (int Column = 0; Column < InputImage.Width; Column++)
             {
-                PixelArray[(Row * PassedImage.Width) + Column] = PassedImage.GetPixel(Column, Row);
+                PixelArray[(Row * InputImage.Width) + Column] = InputImage.GetPixel(Column, Row);
             }
         }
 
@@ -518,25 +518,25 @@ public class ImageProcessing
      */
     public static Boolean CompareColors(string Operation, Color FirstColor, Color SecondColor)
     {
-        double FirstColorRGBAverage = ((FirstColor.R + FirstColor.G + FirstColor.B) / 3);
-        double SecondColorRGBAverage = ((SecondColor.R + SecondColor.G + SecondColor.B) / 3);
+        double FirstColorRGBAverage = (FirstColor.R + FirstColor.G + FirstColor.B) / 3;
+        double SecondColorRGBAverage = (SecondColor.R + SecondColor.G + SecondColor.B) / 3;
 
         switch (Operation)
         {
             case "=":
-                return (FirstColorRGBAverage == SecondColorRGBAverage);
+                return FirstColorRGBAverage == SecondColorRGBAverage;
 
             case "<":
-                return (FirstColorRGBAverage < SecondColorRGBAverage);
+                return FirstColorRGBAverage < SecondColorRGBAverage;
 
             case ">":
-                return (FirstColorRGBAverage > SecondColorRGBAverage);
+                return FirstColorRGBAverage > SecondColorRGBAverage;
 
             case "<=":
-                return (FirstColorRGBAverage <= SecondColorRGBAverage);
+                return FirstColorRGBAverage <= SecondColorRGBAverage;
 
             case ">=":
-                return (FirstColorRGBAverage >= SecondColorRGBAverage);
+                return FirstColorRGBAverage >= SecondColorRGBAverage;
 
             default:
                 throw new ArgumentException("passed operation was not recognized");
@@ -548,12 +548,12 @@ public class ImageProcessing
      * <summary>
      * This method accepts a Bitmap and finds the average color value of all pixels.
      * </summary>
-     * <param name="PassedImage"> This is the Bitmap to find the average value for. </param>
+     * <param name="InputImage"> This is the Bitmap to find the average value for. </param>
      * <returns>
      * A Color representing the average color of all pixels in the passed Bitmap.
      * </returns>
      */
-    public static Color FindAverageColor(Bitmap PassedImage)
+    public static Color FindAverageColor(Bitmap InputImage)
     {
         long AverageAlphaValue = 0;
         long AverageRedValue = 0;
@@ -561,14 +561,14 @@ public class ImageProcessing
         long AverageBlueValue = 0;
         int NumberOfPixels = 0;
 
-        for (int CurrentRow = 0; CurrentRow < PassedImage.Height; CurrentRow++)
+        for (int CurrentRow = 0; CurrentRow < InputImage.Height; CurrentRow++)
         {
-            for (int CurrentColumn = 0; CurrentColumn < PassedImage.Width; CurrentColumn++)
+            for (int CurrentColumn = 0; CurrentColumn < InputImage.Width; CurrentColumn++)
             {
-                AverageAlphaValue += PassedImage.GetPixel(CurrentColumn, CurrentRow).A;
-                AverageRedValue += PassedImage.GetPixel(CurrentColumn, CurrentRow).R;
-                AverageGreenValue += PassedImage.GetPixel(CurrentColumn, CurrentRow).G;
-                AverageBlueValue += PassedImage.GetPixel(CurrentColumn, CurrentRow).B;
+                AverageAlphaValue += InputImage.GetPixel(CurrentColumn, CurrentRow).A;
+                AverageRedValue += InputImage.GetPixel(CurrentColumn, CurrentRow).R;
+                AverageGreenValue += InputImage.GetPixel(CurrentColumn, CurrentRow).G;
+                AverageBlueValue += InputImage.GetPixel(CurrentColumn, CurrentRow).B;
                 NumberOfPixels++;
             }
         }
@@ -589,14 +589,14 @@ public class ImageProcessing
      * <summary>
      * This method accepts a Bitmap as input and then calls the ActualResize method on it until it is of a minimum size.
      * </summary>
-     * <param name="PassedImage"> This is the Bitmap to be resized. </param>
+     * <param name="InputImage"> This is the Bitmap to be resized. </param>
      * <returns>
      * A copy of the Bitmap increased to a minimum size.
      * </returns>
      */
-    public static Bitmap Resize(Bitmap PassedImage)
+    public static Bitmap Resize(Bitmap InputImage)
     {
-        Bitmap NewImage = new Bitmap(PassedImage);
+        Bitmap NewImage = new Bitmap(InputImage);
 
         // minimum width and height required to return image
         int MinimumWidth = 3840;
@@ -630,7 +630,7 @@ public class ImageProcessing
         if (InputImage != null)
         {
             // for newly created Bitmaps, all pixels are given rgb value 0, 0, 0
-            Bitmap OutputImage = new Bitmap((InputImage.Width * 2), (InputImage.Height * 2));
+            Bitmap OutputImage = new Bitmap(InputImage.Width * 2, InputImage.Height * 2);
 
             // loop through input image pixels and copy them to their new position. 
             // moving pixels from x, y to 2x, 2y
@@ -683,8 +683,6 @@ public class ImageProcessing
 
             return OutputImage;
             
-            //OutputImage.Save(OutputFileLocation + @"\OutputFile.jpg");
-            //Console.SetCursorPosition(originalX, originalY);
         }
         else
         {
@@ -697,7 +695,7 @@ public class ImageProcessing
      * <summary>
      * This method magnifies the input image, creating a four pixel square for each pixel.
      * </summary>
-     * <param name="PassedBitmap"> This is the Bitmap to be magnified. </param>
+     * <param name="InputImage"> This is the Bitmap to be magnified. </param>
      * <returns>
      * A copy of the passed Bitmap at double the width and double the height.
      * </returns>
@@ -705,24 +703,24 @@ public class ImageProcessing
      * Thrown if the passed Bitmap is null.
      * </exception>
      */
-    private static Bitmap Magnify(Bitmap PassedBitmap)
+    private static Bitmap Magnify(Bitmap InputImage)
     {
-        if (PassedBitmap != null)
+        if (InputImage != null)
         {
             double Progress;
-            Bitmap OutputImage = new Bitmap((PassedBitmap.Width * 2), (PassedBitmap.Height * 2));
+            Bitmap OutputImage = new Bitmap(InputImage.Width * 2, InputImage.Height * 2);
 
-            for (int j = 0; j < PassedBitmap.Height; j++)
+            for (int j = 0; j < InputImage.Height; j++)
             {
-                for (int i = 0; i < PassedBitmap.Width; i++)
+                for (int i = 0; i < InputImage.Width; i++)
                 {
-                    OutputImage.SetPixel(2 * i, 2 * j, PassedBitmap.GetPixel(i, j));
-                    OutputImage.SetPixel((2 * i) + 1, 2 * j, PassedBitmap.GetPixel(i, j));
-                    OutputImage.SetPixel(2 * i, (2 * j) + 1, PassedBitmap.GetPixel(i, j));
-                    OutputImage.SetPixel((2 * i) + 1, (2 * j) + 1, PassedBitmap.GetPixel(i, j));
+                    OutputImage.SetPixel(2 * i, 2 * j, InputImage.GetPixel(i, j));
+                    OutputImage.SetPixel((2 * i) + 1, 2 * j, InputImage.GetPixel(i, j));
+                    OutputImage.SetPixel(2 * i, (2 * j) + 1, InputImage.GetPixel(i, j));
+                    OutputImage.SetPixel((2 * i) + 1, (2 * j) + 1, InputImage.GetPixel(i, j));
                 }
 
-                Progress = (100 * ((double) j / (double) PassedBitmap.Height));
+                Progress = (100 * ((double) j / (double) InputImage.Height));
                 ProgressBar.SetSubProcessProgressPercentage(Progress);
             }
 
@@ -743,11 +741,11 @@ public class ImageProcessing
      * diag: averages pixels diagonal to the passed pixel
      * </summary>
      * <param name="ComparisonDirection"> This is the direction to compare pixels. </param>
-     * <param name="PassedImage"> This is the passed Bitmap to compare pixels in. </param>
+     * <param name="InputImage"> This is the passed Bitmap to compare pixels in. </param>
      * <param name="CurrentPixelX"> This is the current pixels X position. </param>
      * <param name="CurrentPixelY"> this is the current pixels Y position. </param>
      * <returns>
-     * 
+     * An average of the color value of the group of pixels defined.
      * </returns>
      * <exception cref="ArgumentException">
      * Thrown if the passed Bitmap is null.
@@ -759,34 +757,34 @@ public class ImageProcessing
      * The passed comparison direction is not supported.
      * </exception>
      */
-    private static Color GetAverageColor(string ComparisonDirection, Bitmap PassedImage, int CurrentPixelX, int CurrentPixelY)
+    private static Color GetAverageColor(string ComparisonDirection, Bitmap InputImage, int CurrentPixelX, int CurrentPixelY)
     {
-        if (PassedImage == null)
+        if (InputImage == null)
         {
             throw new ArgumentException("passed Bitmap cannot be null");
         }
 
-        if (CurrentPixelX >= 0 && CurrentPixelY >= 0 && CurrentPixelX < PassedImage.Width && CurrentPixelY < PassedImage.Height)
+        if (CurrentPixelX >= 0 && CurrentPixelY >= 0 && CurrentPixelX < InputImage.Width && CurrentPixelY < InputImage.Height)
         {
             List<Color> NearbyPixels = new List<Color>();
 
             switch (ComparisonDirection)
             {
                 case "diag":
-                    NearbyPixels.Add(PassedImage.GetPixel(CurrentPixelX - 1, CurrentPixelY - 1));
-                    NearbyPixels.Add(PassedImage.GetPixel(CurrentPixelX - 1, CurrentPixelY + 1));
-                    NearbyPixels.Add(PassedImage.GetPixel(CurrentPixelX + 1, CurrentPixelY - 1));
-                    NearbyPixels.Add(PassedImage.GetPixel(CurrentPixelX + 1, CurrentPixelY + 1));
+                    NearbyPixels.Add(InputImage.GetPixel(CurrentPixelX - 1, CurrentPixelY - 1));
+                    NearbyPixels.Add(InputImage.GetPixel(CurrentPixelX - 1, CurrentPixelY + 1));
+                    NearbyPixels.Add(InputImage.GetPixel(CurrentPixelX + 1, CurrentPixelY - 1));
+                    NearbyPixels.Add(InputImage.GetPixel(CurrentPixelX + 1, CurrentPixelY + 1));
                     break;
 
                 case "vert":
-                    NearbyPixels.Add(PassedImage.GetPixel(CurrentPixelX, CurrentPixelY - 1));
-                    NearbyPixels.Add(PassedImage.GetPixel(CurrentPixelX, CurrentPixelY + 1));
+                    NearbyPixels.Add(InputImage.GetPixel(CurrentPixelX, CurrentPixelY - 1));
+                    NearbyPixels.Add(InputImage.GetPixel(CurrentPixelX, CurrentPixelY + 1));
                     break;
 
                 case "horiz":
-                    NearbyPixels.Add(PassedImage.GetPixel(CurrentPixelX - 1, CurrentPixelY));
-                    NearbyPixels.Add(PassedImage.GetPixel(CurrentPixelX + 1, CurrentPixelY));
+                    NearbyPixels.Add(InputImage.GetPixel(CurrentPixelX - 1, CurrentPixelY));
+                    NearbyPixels.Add(InputImage.GetPixel(CurrentPixelX + 1, CurrentPixelY));
                     break;
 
                 default:
@@ -831,99 +829,95 @@ public class ImageProcessing
     /// <param name="lambda">The shape of the diffusion coefficient g(), controlling the Perona Malik diffusion g(delta) = 1/((1 +  delta2)  / lambda2). Upper = more blurred image & more noise removed</param>
     /// <param name="iterations">Determines the maximum number of iteration steps of the filter. Upper = less speed & more noise removed</param>
 
-    private static Bitmap ADReduceNoise(Bitmap PassedImage, double dt, int lambda, int iterations)
+    private static Bitmap ADReduceNoise(Bitmap InputImage, double dt, int lambda, int iterations)
     {
-        if (PassedImage != null)
+
+        if (InputImage == null) throw new ArgumentException("Passed Bitmap cannot be null");
+
+        // todo
+        //test parameters
+        if (dt < 0)
+            throw new Exception("DT negative value not allowed");
+        if (lambda < 0)
+            throw new Exception("lambda must be greater than 0");
+        if (iterations <= 0)
+            throw new Exception("Iterations must be greater than 0");
+
+        //Make temp Bitmap
+        Bitmap ReturnBitmap = (Bitmap) InputImage.Clone();
+
+        //Precalculate tables (for speed up)
+        double[] precal = new double[512];
+        double lambda2 = lambda * lambda;
+        for (int f = 0; f < 512; f++)
         {
-            // todo
-            //test parameters
-            if (dt < 0)
-                throw new Exception("DT negative value not allowed");
-            if (lambda < 0)
-                throw new Exception("lambda must be greater than 0");
-            if (iterations <= 0)
-                throw new Exception("Iterations must be greater than 0");
-
-            //Make temp Bitmap
-            Bitmap ReturnBitmap = (Bitmap) PassedImage.Clone();
-
-            //Precalculate tables (for speed up)
-            double[] precal = new double[512];
-            double lambda2 = lambda * lambda;
-            for (int f = 0; f < 512; f++)
-            {
-                int delta = f - 255;
-                // equation 2
-                precal[f] = -dt * delta * lambda2 / (lambda2 + delta * delta);
-                // equation 1 (exponential)
-                //precal[f] = -dt * delta * Math.Exp(-(delta * delta / lambda2));
-            }
-
-            //Apply the filter
-            for (int n = 0; n < iterations; n++)
-            {
-                for (int h = 0; h < PassedImage.Height; h++)
-                    for (int w = 0; w < PassedImage.Width; w++)
-                    {
-                        int px = w - 1;
-                        int nx = w + 1;
-                        int py = h - 1;
-                        int ny = h + 1;
-                        if (px < 0)
-                            px = 0;
-                        if (nx >= PassedImage.Width)
-                            nx = PassedImage.Width - 1;
-                        if (py < 0)
-                            py = 0;
-                        if (ny >= PassedImage.Height)
-                            ny = PassedImage.Height - 1;
-
-
-                        int current = PassedImage.GetPixel(w, h).A;
-
-                        int AlphaValue = (int) (precal[255 + current - PassedImage.GetPixel(px, h).A] +
-                                        precal[255 + current - PassedImage.GetPixel(nx, h).A] +
-                                        precal[255 + current - PassedImage.GetPixel(w, py).A] +
-                                        precal[255 + current - PassedImage.GetPixel(w, ny).A] +
-                                        PassedImage.GetPixel(w, h).A);
-
-
-                        current = PassedImage.GetPixel(w, h).R;
-
-                        int RedValue = (int) (precal[255 + current - PassedImage.GetPixel(px, h).R] +
-                                        precal[255 + current - PassedImage.GetPixel(nx, h).R] +
-                                        precal[255 + current - PassedImage.GetPixel(w, py).R] +
-                                        precal[255 + current - PassedImage.GetPixel(w, ny).R] +
-                                        PassedImage.GetPixel(w, h).R);
-
-
-                        current = PassedImage.GetPixel(w, h).G;
-
-                        int GreenValue = (int) (precal[255 + current - PassedImage.GetPixel(px, h).G] +
-                                        precal[255 + current - PassedImage.GetPixel(nx, h).G] +
-                                        precal[255 + current - PassedImage.GetPixel(w, py).G] +
-                                        precal[255 + current - PassedImage.GetPixel(w, ny).G] +
-                                        PassedImage.GetPixel(w, h).G);
-
-                        current = PassedImage.GetPixel(w, h).B;
-
-                        int BlueValue = (int) (precal[255 + current - PassedImage.GetPixel(px, h).B] +
-                                        precal[255 + current - PassedImage.GetPixel(nx, h).B] +
-                                        precal[255 + current - PassedImage.GetPixel(w, py).B] +
-                                        precal[255 + current - PassedImage.GetPixel(w, ny).B] +
-                                        PassedImage.GetPixel(w, h).B);
-                        
-
-                        ReturnBitmap.SetPixel(w, h, Color.FromArgb(AlphaValue, RedValue, GreenValue, BlueValue));
-                    }
-            }
-
-            return ReturnBitmap;
+            int delta = f - 255;
+            // equation 2
+            precal[f] = -dt * delta * lambda2 / (lambda2 + delta * delta);
+            // equation 1 (exponential)
+            //precal[f] = -dt * delta * Math.Exp(-(delta * delta / lambda2));
         }
-        else
+
+        //Apply the filter
+        for (int n = 0; n < iterations; n++)
         {
-            throw new ArgumentException("Passed Bitmap cannot be null");
+            for (int h = 0; h < InputImage.Height; h++)
+                for (int w = 0; w < InputImage.Width; w++)
+                {
+                    int px = w - 1;
+                    int nx = w + 1;
+                    int py = h - 1;
+                    int ny = h + 1;
+                    if (px < 0)
+                        px = 0;
+                    if (nx >= InputImage.Width)
+                        nx = InputImage.Width - 1;
+                    if (py < 0)
+                        py = 0;
+                    if (ny >= InputImage.Height)
+                        ny = InputImage.Height - 1;
+
+
+                    int current = InputImage.GetPixel(w, h).A;
+
+                    int AlphaValue = (int) (precal[255 + current - InputImage.GetPixel(px, h).A] +
+                                    precal[255 + current - InputImage.GetPixel(nx, h).A] +
+                                    precal[255 + current - InputImage.GetPixel(w, py).A] +
+                                    precal[255 + current - InputImage.GetPixel(w, ny).A] +
+                                    InputImage.GetPixel(w, h).A);
+
+
+                    current = InputImage.GetPixel(w, h).R;
+
+                    int RedValue = (int) (precal[255 + current - InputImage.GetPixel(px, h).R] +
+                                    precal[255 + current - InputImage.GetPixel(nx, h).R] +
+                                    precal[255 + current - InputImage.GetPixel(w, py).R] +
+                                    precal[255 + current - InputImage.GetPixel(w, ny).R] +
+                                    InputImage.GetPixel(w, h).R);
+
+
+                    current = InputImage.GetPixel(w, h).G;
+
+                    int GreenValue = (int) (precal[255 + current - InputImage.GetPixel(px, h).G] +
+                                    precal[255 + current - InputImage.GetPixel(nx, h).G] +
+                                    precal[255 + current - InputImage.GetPixel(w, py).G] +
+                                    precal[255 + current - InputImage.GetPixel(w, ny).G] +
+                                    InputImage.GetPixel(w, h).G);
+
+                    current = InputImage.GetPixel(w, h).B;
+
+                    int BlueValue = (int) (precal[255 + current - InputImage.GetPixel(px, h).B] +
+                                    precal[255 + current - InputImage.GetPixel(nx, h).B] +
+                                    precal[255 + current - InputImage.GetPixel(w, py).B] +
+                                    precal[255 + current - InputImage.GetPixel(w, ny).B] +
+                                    InputImage.GetPixel(w, h).B);
+                    
+
+                    ReturnBitmap.SetPixel(w, h, Color.FromArgb(AlphaValue, RedValue, GreenValue, BlueValue));
+                }
         }
+
+        return ReturnBitmap;
     }
 
 
@@ -931,7 +925,7 @@ public class ImageProcessing
      * <summary>
      * This method searches the passed Bitmap for pixels that lie on an edge and updates the pixels.
      * </summary>
-     * <param name="PassedImage"> This is the Bitmap to be processed. </param>
+     * <param name="InputImage"> This is the Bitmap to be processed. </param>
      * <returns>
      * A copy of the passed Bitmap
      * </returns>
@@ -939,18 +933,18 @@ public class ImageProcessing
      * Thrown if the passed Bitmap is null.
      * </exception>
      */
-    private static Bitmap SharpenEdges(Bitmap PassedImage)
+    private static Bitmap SharpenEdges(Bitmap InputImage)
     {
-        if (PassedImage != null)
+        if (InputImage != null)
         {
             // represents how close a pixel r, g, or b value must be to be considered similar
             double SimilarityRange = 0;  
-            Bitmap ReturnBitmap = (Bitmap) PassedImage.Clone();
+            Bitmap ReturnBitmap = (Bitmap) InputImage.Clone();
 
             // four nested for loops?! there must be a better way to do this. look into improvements.
-            for (int j = 4; j < PassedImage.Height - 4; j += 2)
+            for (int j = 4; j < InputImage.Height - 4; j += 2)
             {
-                for (int i = 4; i < PassedImage.Width - 4; i += 2)
+                for (int i = 4; i < InputImage.Width - 4; i += 2)
                 {
                     bool[,] SimilarPixels = new bool[3, 3];
                     for (int a = i - 2; a <= i + 2; a += 2)
@@ -961,12 +955,12 @@ public class ImageProcessing
                             SimilarPixels[((a - i) + 2) / 2, ((b - j) + 2) / 2] = false;
 
                             // if the pixels a, r, g, and b values are within the similarity range, flag as true
-                            if ((PassedImage.GetPixel(a, b).A > (PassedImage.GetPixel(i, j).A - SimilarityRange) && (PassedImage.GetPixel(a, b).A < (PassedImage.GetPixel(i, j).A + SimilarityRange))) &&
-                                (PassedImage.GetPixel(a, b).R > (PassedImage.GetPixel(i, j).R - SimilarityRange) && (PassedImage.GetPixel(a, b).R < (PassedImage.GetPixel(i, j).R + SimilarityRange))) &&
-                                (PassedImage.GetPixel(a, b).G > (PassedImage.GetPixel(i, j).G - SimilarityRange) && (PassedImage.GetPixel(a, b).G < (PassedImage.GetPixel(i, j).G + SimilarityRange))) &&
-                                (PassedImage.GetPixel(a, b).B > (PassedImage.GetPixel(i, j).B - SimilarityRange) && (PassedImage.GetPixel(a, b).B < (PassedImage.GetPixel(i, j).B + SimilarityRange))))
+                            if (InputImage.GetPixel(a, b).A > (InputImage.GetPixel(i, j).A - SimilarityRange) && (InputImage.GetPixel(a, b).A < (InputImage.GetPixel(i, j).A + SimilarityRange)) &&
+                                InputImage.GetPixel(a, b).R > (InputImage.GetPixel(i, j).R - SimilarityRange) && (InputImage.GetPixel(a, b).R < (InputImage.GetPixel(i, j).R + SimilarityRange)) &&
+                                InputImage.GetPixel(a, b).G > (InputImage.GetPixel(i, j).G - SimilarityRange) && (InputImage.GetPixel(a, b).G < (InputImage.GetPixel(i, j).G + SimilarityRange)) &&
+                                InputImage.GetPixel(a, b).B > (InputImage.GetPixel(i, j).B - SimilarityRange) && (InputImage.GetPixel(a, b).B < (InputImage.GetPixel(i, j).B + SimilarityRange)))
                             {
-                                SimilarPixels[((a - i) + 2) / 2, ((b - j) + 2) / 2] = true;
+                                SimilarPixels[(a - i + 2) / 2, ((b - j) + 2) / 2] = true;
                             }
                         }
                     }
@@ -974,38 +968,38 @@ public class ImageProcessing
                     // check for '\' edge
                     if (SimilarPixels[0, 0] && !SimilarPixels[0, 1] && !SimilarPixels[0, 2] && !SimilarPixels[1, 0] && !SimilarPixels[1, 2] && !SimilarPixels[2, 0] && !SimilarPixels[2, 1] && SimilarPixels[2, 2])
                     {
-                        ReturnBitmap.SetPixel(i - 1, j + 1, PassedImage.GetPixel(i, j));
-                        ReturnBitmap.SetPixel(i + 1, j - 1, PassedImage.GetPixel(i, j));
+                        ReturnBitmap.SetPixel(i - 1, j + 1, InputImage.GetPixel(i, j));
+                        ReturnBitmap.SetPixel(i + 1, j - 1, InputImage.GetPixel(i, j));
                     }
 
                     // check for '/' edge
                     if (!SimilarPixels[0, 0] && !SimilarPixels[0, 1] && SimilarPixels[0, 2] && !SimilarPixels[1, 0] && !SimilarPixels[1, 2] && SimilarPixels[2, 0] && !SimilarPixels[2, 1] && !SimilarPixels[2, 2])
                     {
-                        ReturnBitmap.SetPixel(i - 1, j - 1, PassedImage.GetPixel(i, j));
-                        ReturnBitmap.SetPixel(i + 1, j + 1, PassedImage.GetPixel(i, j));
+                        ReturnBitmap.SetPixel(i - 1, j - 1, InputImage.GetPixel(i, j));
+                        ReturnBitmap.SetPixel(i + 1, j + 1, InputImage.GetPixel(i, j));
                     }
 
                     // check for '-' edge
                     if (!SimilarPixels[0, 0] && !SimilarPixels[0, 1] && !SimilarPixels[0, 2] && SimilarPixels[1, 0] && SimilarPixels[1, 2] && SimilarPixels[2, 0] && !SimilarPixels[2, 1] && !SimilarPixels[2, 2])
                     {
-                        ReturnBitmap.SetPixel(i - 1, j, PassedImage.GetPixel(i, j));
-                        ReturnBitmap.SetPixel(i + 1, j, PassedImage.GetPixel(i, j));
+                        ReturnBitmap.SetPixel(i - 1, j, InputImage.GetPixel(i, j));
+                        ReturnBitmap.SetPixel(i + 1, j, InputImage.GetPixel(i, j));
                     }
 
                     // check for '|' edge
                     if (!SimilarPixels[0, 0] && SimilarPixels[0, 1] && !SimilarPixels[0, 2] && !SimilarPixels[1, 0] && !SimilarPixels[1, 2] && !SimilarPixels[2, 0] && SimilarPixels[2, 1] && !SimilarPixels[2, 2])
                     {
-                        ReturnBitmap.SetPixel(i, j + 1, PassedImage.GetPixel(i, j));
-                        ReturnBitmap.SetPixel(i, j - 1, PassedImage.GetPixel(i, j));
+                        ReturnBitmap.SetPixel(i, j + 1, InputImage.GetPixel(i, j));
+                        ReturnBitmap.SetPixel(i, j - 1, InputImage.GetPixel(i, j));
                     }
 
                     // check for 'X' edge
                     if (SimilarPixels[0, 0] && !SimilarPixels[0, 1] && SimilarPixels[0, 2] && !SimilarPixels[1, 0] && !SimilarPixels[1, 2] && SimilarPixels[2, 0] && !SimilarPixels[2, 1] && SimilarPixels[2, 2])
                     {
-                        ReturnBitmap.SetPixel(i - 1, j - 1, PassedImage.GetPixel(i, j));
-                        ReturnBitmap.SetPixel(i - 1, j + 1, PassedImage.GetPixel(i, j));
-                        ReturnBitmap.SetPixel(i + 1, j - 1, PassedImage.GetPixel(i, j));
-                        ReturnBitmap.SetPixel(i + 1, j + 1, PassedImage.GetPixel(i, j));
+                        ReturnBitmap.SetPixel(i - 1, j - 1, InputImage.GetPixel(i, j));
+                        ReturnBitmap.SetPixel(i - 1, j + 1, InputImage.GetPixel(i, j));
+                        ReturnBitmap.SetPixel(i + 1, j - 1, InputImage.GetPixel(i, j));
+                        ReturnBitmap.SetPixel(i + 1, j + 1, InputImage.GetPixel(i, j));
                     }
                 }
             }
@@ -1023,29 +1017,29 @@ public class ImageProcessing
      * <summary>
      * This method accepts a Bitmap and converts it into ASCII characters, then saves it as a text file.
      * </summary>
-     * <param name="PassedImage"> This is the Bitmap to be converted into ASCII characters. </param>
+     * <param name="InputImage"> This is the Bitmap to be converted into ASCII characters. </param>
      * <param name="PassedFileName"> This is the filename the ASCII character text file will be saved as. </param>"
      * <exception cref="ArgumentException">
      * Thrown if the passed Bitmap is null.
      * </exception>
      */
-    private static void ConvertImageToAscii(Bitmap PassedImage, string PassedFileName)
+    private static void ConvertImageToAscii(Bitmap InputImage, string PassedFileName)
     {
 
         string OutputAsciiChars = " _.,-=+:;abc!?0123456789$W#@Ñ";
         //string OutputAsciiChars = "Ñ@#W$9876543210?!abc;:+=-,._ ";
 
-        if (PassedImage != null)
+        if (InputImage != null)
         {
             char[] OutputChars = OutputAsciiChars.ToCharArray();
             double ConversionValue = (256.0 / (OutputChars.Length - 1));
             StreamWriter OutputFile = File.CreateText(PassedFileName);
 
-            for (int j = 0; j < PassedImage.Height; j++)
+            for (int j = 0; j < InputImage.Height; j++)
             {
-                for (int i = 0; i < PassedImage.Width; i++)
+                for (int i = 0; i < InputImage.Width; i++)
                 {
-                        OutputFile.Write(" " + OutputChars[(int) ((FindBrightnessAsInt(PassedImage, i, j) / ConversionValue))]);
+                        OutputFile.Write(" " + OutputChars[(int) ((FindBrightnessAsInt(InputImage, i, j) / ConversionValue))]);
                 }
                 OutputFile.Write("\n");
             }
@@ -1061,20 +1055,20 @@ public class ImageProcessing
      * <summary>
      * This method returns the calculated brightness value for a specified pixel within a Bitmap.
      * </summary>
-     * <param name="PassedImage"> This is the Bitmap containing the pixel. </param>
+     * <param name="InputImage"> This is the Bitmap containing the pixel. </param>
      * <param name="PositionX"> This is the X position of the pixel. </param>
      * <param name="PositionY"> This is the Y position of the pixel. </param>
      * <returns>
      * An integer representing the calculated brightness for the passed pixel.
      * </returns>
      */
-    private static int FindBrightnessAsInt(Bitmap PassedImage, int PositionX, int PositionY)
+    private static int FindBrightnessAsInt(Bitmap InputImage, int PositionX, int PositionY)
     {
         // below formula weighs r, g, and b values equally
-        //return (int) ((PassedImage.GetPixel(PositionX, PositionY).R + PassedImage.GetPixel(PositionX, PositionY).G + PassedImage.GetPixel(PositionX, PositionY).B) / 3);
+        //return (int) ((InputImage.GetPixel(PositionX, PositionY).R + InputImage.GetPixel(PositionX, PositionY).G + InputImage.GetPixel(PositionX, PositionY).B) / 3);
 
         // below formula returns Luminance
-        return (int) ((PassedImage.GetPixel(PositionX, PositionY).R * 0.3) + (PassedImage.GetPixel(PositionX, PositionY).G * 0.59) + (PassedImage.GetPixel(PositionX, PositionY).B * 0.11));
+        return (int) ((InputImage.GetPixel(PositionX, PositionY).R * 0.3) + (InputImage.GetPixel(PositionX, PositionY).G * 0.59) + (InputImage.GetPixel(PositionX, PositionY).B * 0.11));
     }
 
 
@@ -1082,7 +1076,7 @@ public class ImageProcessing
      * <summary>
      * This method searches the passed Bitmap for pixels that lie on an edge.
      * </summary>
-     * <param name="PassedImage"> This is the Bitmap to be searched for edges. </param>
+     * <param name="InputImage"> This is the Bitmap to be searched for edges. </param>
      * <returns>
      * A char array where each char represents a possible edge that the pixel lies on.
      * </returns>
@@ -1090,18 +1084,18 @@ public class ImageProcessing
      * Thrown if the passed Bitmap is null.
      * </exception>
      */
-    private static char[,] FindEdges(Bitmap PassedImage)
+    private static char[,] FindEdges(Bitmap InputImage)
     {
-        if (PassedImage != null)
+        if (InputImage != null)
         {
             // represents how close a pixel r, g, or b value must be to be considered similar
             double SimilarityRange = 5;  
-            char[,] ReturnArray = new char[PassedImage.Width, PassedImage.Height];
+            char[,] ReturnArray = new char[InputImage.Width, InputImage.Height];
 
             // four nested for loops?! there must be a better way to do this. look into improvements.
-            for (int j = 1; j < PassedImage.Height - 1; j ++)
+            for (int j = 1; j < InputImage.Height - 1; j ++)
             {
-                for (int i = 1; i < PassedImage.Width - 1; i++)
+                for (int i = 1; i < InputImage.Width - 1; i++)
                 {
                     // set edge flag character to empty space by default
                     ReturnArray[i, j] = ' ';
@@ -1115,10 +1109,10 @@ public class ImageProcessing
                             SimilarPixels[(a - i) + 1, (b - j) + 1] = false;
 
                             // if the pixels a, r, g, and b values are within the similarity range, flag as true
-                            if ((PassedImage.GetPixel(a, b).A > (PassedImage.GetPixel(i, j).A - SimilarityRange) && (PassedImage.GetPixel(a, b).A < (PassedImage.GetPixel(i, j).A + SimilarityRange))) &&
-                                (PassedImage.GetPixel(a, b).R > (PassedImage.GetPixel(i, j).R - SimilarityRange) && (PassedImage.GetPixel(a, b).R < (PassedImage.GetPixel(i, j).R + SimilarityRange))) &&
-                                (PassedImage.GetPixel(a, b).G > (PassedImage.GetPixel(i, j).G - SimilarityRange) && (PassedImage.GetPixel(a, b).G < (PassedImage.GetPixel(i, j).G + SimilarityRange))) &&
-                                (PassedImage.GetPixel(a, b).B > (PassedImage.GetPixel(i, j).B - SimilarityRange) && (PassedImage.GetPixel(a, b).B < (PassedImage.GetPixel(i, j).B + SimilarityRange))))
+                            if ((InputImage.GetPixel(a, b).A > (InputImage.GetPixel(i, j).A - SimilarityRange) && (InputImage.GetPixel(a, b).A < (InputImage.GetPixel(i, j).A + SimilarityRange))) &&
+                                (InputImage.GetPixel(a, b).R > (InputImage.GetPixel(i, j).R - SimilarityRange) && (InputImage.GetPixel(a, b).R < (InputImage.GetPixel(i, j).R + SimilarityRange))) &&
+                                (InputImage.GetPixel(a, b).G > (InputImage.GetPixel(i, j).G - SimilarityRange) && (InputImage.GetPixel(a, b).G < (InputImage.GetPixel(i, j).G + SimilarityRange))) &&
+                                (InputImage.GetPixel(a, b).B > (InputImage.GetPixel(i, j).B - SimilarityRange) && (InputImage.GetPixel(a, b).B < (InputImage.GetPixel(i, j).B + SimilarityRange))))
                             {
                                 SimilarPixels[(a - i) + 1, (b - j) + 1] = true;
                             }
