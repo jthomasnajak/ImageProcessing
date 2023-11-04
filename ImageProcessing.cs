@@ -516,7 +516,7 @@ public class ImageProcessing
      * Thrown if the passed operation is not supported.
      * </exception>
      */
-    public static Boolean CompareColors(string Operation, Color FirstColor, Color SecondColor)
+    public static bool CompareColors(string Operation, Color FirstColor, Color SecondColor)
     {
         double FirstColorRGBAverage = (FirstColor.R + FirstColor.G + FirstColor.B) / 3;
         double SecondColorRGBAverage = (SecondColor.R + SecondColor.G + SecondColor.B) / 3;
@@ -587,20 +587,18 @@ public class ImageProcessing
 
     /**
      * <summary>
-     * This method accepts a Bitmap as input and then calls the ActualResize method on it until it is of a minimum size.
+     * This method accepts a Bitmap as input and then calls the ActualResize method on it until it is of a minimum size. If it is already larger than the passed size, it will not be resized.
      * </summary>
      * <param name="InputImage"> This is the Bitmap to be resized. </param>
+     * <param name="MinimumWidth"> This is the minimum width the image will have before being returned. </param>
+     * <param name="MinimumHeight"> This is the minimum height the image will have before being returned. </param>
      * <returns>
-     * A copy of the Bitmap increased to a minimum size.
+     * A copy of the Bitmap increased to the minimum size.
      * </returns>
      */
-    public static Bitmap Resize(Bitmap InputImage)
+    public static Bitmap Resize(Bitmap InputImage, int MinimumWidth, int MinimumHeight)
     {
         Bitmap NewImage = new Bitmap(InputImage);
-
-        // minimum width and height required to return image
-        int MinimumWidth = 3840;
-        int MinimumHeight = 2160;
 
         while ((NewImage.Width < MinimumWidth) || (NewImage.Height < MinimumHeight))
         {
