@@ -38,6 +38,11 @@ public class ImageProcessing
         int CurrentImage = 0;
         int TotalNumberOfImages = Directory.GetFiles(InputFileFolder, "*.*", SearchOption.TopDirectoryOnly).Length;
 
+        if (!Directory.Exists(InputFileFolder)) 
+            throw new ArgumentException("Input folder location is invalid. " + InputFileFolder);
+        if (!Directory.Exists(OutputFileFolder)) 
+            throw new ArgumentException("Output folder location is invalid. " + OutputFileFolder);
+
         foreach (string FileName in Directory.GetFiles(InputFileFolder))
         {
             ProgressBar.SetTotalProgressPercentage(100 * ((double) CurrentImage / TotalNumberOfImages));
