@@ -129,10 +129,10 @@ public class ImageProcessing
         {
             for (int CurrentColumn = 0; CurrentColumn < NewImage.Width; CurrentColumn++)
             {
-                NewAlphaValue = (255 - NewImage.GetPixel(CurrentColumn, CurrentRow).A);
-                NewRedValue = (255 - NewImage.GetPixel(CurrentColumn, CurrentRow).R);
-                NewGreenValue = (255 - NewImage.GetPixel(CurrentColumn, CurrentRow).G);
-                NewBlueValue = (255 - NewImage.GetPixel(CurrentColumn, CurrentRow).B);
+                NewAlphaValue = 255 - NewImage.GetPixel(CurrentColumn, CurrentRow).A;
+                NewRedValue = 255 - NewImage.GetPixel(CurrentColumn, CurrentRow).R;
+                NewGreenValue = 255 - NewImage.GetPixel(CurrentColumn, CurrentRow).G;
+                NewBlueValue = 255 - NewImage.GetPixel(CurrentColumn, CurrentRow).B;
                 NewImage.SetPixel(CurrentColumn, CurrentRow, Color.FromArgb(NewAlphaValue, NewRedValue, NewGreenValue, NewBlueValue));
             }
             ProgressBar.SetSubProcessProgressPercentage(100 * ((double) CurrentRow / (double) NewImage.Height));
@@ -165,10 +165,10 @@ public class ImageProcessing
         {
             for (int CurrentColumn = 0; CurrentColumn < NewImage.Width; CurrentColumn++)
             {
-                NewAlphaValue = (128 + ((AverageColor.A - NewImage.GetPixel(CurrentColumn, CurrentRow).A) / 2));
-                NewRedValue = (128 + ((AverageColor.R - NewImage.GetPixel(CurrentColumn, CurrentRow).R) / 2));
-                NewGreenValue = (128 + ((AverageColor.G - NewImage.GetPixel(CurrentColumn, CurrentRow).G) / 2));
-                NewBlueValue = (128 + ((AverageColor.B - NewImage.GetPixel(CurrentColumn, CurrentRow).B) / 2));
+                NewAlphaValue = 128 + ((AverageColor.A - NewImage.GetPixel(CurrentColumn, CurrentRow).A) / 2);
+                NewRedValue = 128 + ((AverageColor.R - NewImage.GetPixel(CurrentColumn, CurrentRow).R) / 2);
+                NewGreenValue = 128 + ((AverageColor.G - NewImage.GetPixel(CurrentColumn, CurrentRow).G) / 2);
+                NewBlueValue = 128 + ((AverageColor.B - NewImage.GetPixel(CurrentColumn, CurrentRow).B) / 2);
                 NewImage.SetPixel(CurrentColumn, CurrentRow, Color.FromArgb(NewAlphaValue, NewRedValue, NewGreenValue, NewBlueValue));
             }
             ProgressBar.SetSubProcessProgressPercentage(100 * ((double) CurrentRow / (double) NewImage.Height));
@@ -630,67 +630,62 @@ public class ImageProcessing
      */
     private static Bitmap ActualResize(Bitmap InputImage)
     {
-        if (InputImage != null)
+        if (InputImage == null)
+            throw new ArgumentException("Input Image cannot be null");
+
+        // for newly created Bitmaps, all pixels are given rgb value 0, 0, 0
+        Bitmap OutputImage = new Bitmap(InputImage.Width * 2, InputImage.Height * 2);
+
+        // loop through input image pixels and copy them to their new position. 
+        // moving pixels from x, y to 2x, 2y
+        for (int j = 0; j < InputImage.Height; j++)
         {
-            // for newly created Bitmaps, all pixels are given rgb value 0, 0, 0
-            Bitmap OutputImage = new Bitmap(InputImage.Width * 2, InputImage.Height * 2);
-
-            // loop through input image pixels and copy them to their new position. 
-            // moving pixels from x, y to 2x, 2y
-            for (int j = 0; j < InputImage.Height; j++)
+            for (int i = 0; i < InputImage.Width; i++)
             {
-                for (int i = 0; i < InputImage.Width; i++)
-                {
-                    OutputImage.SetPixel(2 * i, 2 * j, InputImage.GetPixel(i, j));
-                }
-                ProgressBar.SetSubProcessProgressPercentage(25 * ((double) j / InputImage.Height));
+                OutputImage.SetPixel(2 * i, 2 * j, InputImage.GetPixel(i, j));
             }
+            ProgressBar.SetSubProcessProgressPercentage(25 * ((double) j / InputImage.Height));
+        }
 
-            ProgressBar.SetSubProcessProgressPercentage(25);
+        ProgressBar.SetSubProcessProgressPercentage(25);
 
-            // next loop is to fill in the empty pixels at odd increments along the x axis
-            for (int j = 0; j < OutputImage.Height; j += 2)
-            {
-                for (int i = 1; i < OutputImage.Width - 1; i += 2)
-                {
-                    OutputImage.SetPixel(i, j, GetAverageColor("horiz", OutputImage, i, j));
-                }
-                ProgressBar.SetSubProcessProgressPercentage(25 + (25 * ((double) j / OutputImage.Height)));
-            }
-
-            ProgressBar.SetSubProcessProgressPercentage(50);
-
-            // next loop is to fill in the empty pixels at odd increments along the y axis
-            for (int i = 0; i < OutputImage.Width; i += 2)
-            {
-                for (int j = 1; j < OutputImage.Height - 1; j += 2)
-                {
-                    OutputImage.SetPixel(i, j, GetAverageColor("vert", OutputImage, i, j));
-                }
-                ProgressBar.SetSubProcessProgressPercentage(50 + (25 * ((double) i / OutputImage.Width)));
-            }
-
-            ProgressBar.SetSubProcessProgressPercentage(75);
-
-            // next loop is to fill in the remaining empty pixels
+        // next loop is to fill in the empty pixels at odd increments along the x axis
+        for (int j = 0; j < OutputImage.Height; j += 2)
+        {
             for (int i = 1; i < OutputImage.Width - 1; i += 2)
             {
-                for (int j = 1; j < OutputImage.Height - 1; j += 2)
-                {
-                    OutputImage.SetPixel(i, j, GetAverageColor("diag", OutputImage, i, j));
-                }
-                ProgressBar.SetSubProcessProgressPercentage(75 + (25 * ((double) i / InputImage.Width)));
+                OutputImage.SetPixel(i, j, GetAverageColor("horiz", OutputImage, i, j));
             }
-
-            ProgressBar.SetSubProcessProgressPercentage(100);
-
-            return OutputImage;
-            
+            ProgressBar.SetSubProcessProgressPercentage(25 + (25 * ((double) j / OutputImage.Height)));
         }
-        else
+
+        ProgressBar.SetSubProcessProgressPercentage(50);
+
+        // next loop is to fill in the empty pixels at odd increments along the y axis
+        for (int i = 0; i < OutputImage.Width; i += 2)
         {
-            throw new ArgumentException("Input Image cannot be null");
+            for (int j = 1; j < OutputImage.Height - 1; j += 2)
+            {
+                OutputImage.SetPixel(i, j, GetAverageColor("vert", OutputImage, i, j));
+            }
+            ProgressBar.SetSubProcessProgressPercentage(50 + (25 * ((double) i / OutputImage.Width)));
         }
+
+        ProgressBar.SetSubProcessProgressPercentage(75);
+
+        // next loop is to fill in the remaining empty pixels
+        for (int i = 1; i < OutputImage.Width - 1; i += 2)
+        {
+            for (int j = 1; j < OutputImage.Height - 1; j += 2)
+            {
+                OutputImage.SetPixel(i, j, GetAverageColor("diag", OutputImage, i, j));
+            }
+            ProgressBar.SetSubProcessProgressPercentage(75 + (25 * ((double) i / InputImage.Width)));
+        }
+
+        ProgressBar.SetSubProcessProgressPercentage(100);
+
+        return OutputImage;
     }
 
 
@@ -708,31 +703,27 @@ public class ImageProcessing
      */
     private static Bitmap Magnify(Bitmap InputImage)
     {
-        if (InputImage != null)
+        if (InputImage == null)
+            throw new ArgumentException("Passed Bitmap cannot be null");
+
+        double Progress;
+        Bitmap OutputImage = new Bitmap(InputImage.Width * 2, InputImage.Height * 2);
+
+        for (int j = 0; j < InputImage.Height; j++)
         {
-            double Progress;
-            Bitmap OutputImage = new Bitmap(InputImage.Width * 2, InputImage.Height * 2);
-
-            for (int j = 0; j < InputImage.Height; j++)
+            for (int i = 0; i < InputImage.Width; i++)
             {
-                for (int i = 0; i < InputImage.Width; i++)
-                {
-                    OutputImage.SetPixel(2 * i, 2 * j, InputImage.GetPixel(i, j));
-                    OutputImage.SetPixel((2 * i) + 1, 2 * j, InputImage.GetPixel(i, j));
-                    OutputImage.SetPixel(2 * i, (2 * j) + 1, InputImage.GetPixel(i, j));
-                    OutputImage.SetPixel((2 * i) + 1, (2 * j) + 1, InputImage.GetPixel(i, j));
-                }
-
-                Progress = (100 * ((double) j / (double) InputImage.Height));
-                ProgressBar.SetSubProcessProgressPercentage(Progress);
+                OutputImage.SetPixel(2 * i, 2 * j, InputImage.GetPixel(i, j));
+                OutputImage.SetPixel((2 * i) + 1, 2 * j, InputImage.GetPixel(i, j));
+                OutputImage.SetPixel(2 * i, (2 * j) + 1, InputImage.GetPixel(i, j));
+                OutputImage.SetPixel((2 * i) + 1, (2 * j) + 1, InputImage.GetPixel(i, j));
             }
 
-            return OutputImage;
+            Progress = 100 * ((double) j / (double) InputImage.Height);
+            ProgressBar.SetSubProcessProgressPercentage(Progress);
         }
-        else
-        {
-            throw new ArgumentException("Passed Bitmap cannot be null");
-        }
+
+        return OutputImage;
     }
 
 
@@ -763,64 +754,57 @@ public class ImageProcessing
     private static Color GetAverageColor(string ComparisonDirection, Bitmap InputImage, int CurrentPixelX, int CurrentPixelY)
     {
         if (InputImage == null)
-        {
             throw new ArgumentException("passed Bitmap cannot be null");
-        }
-
-        if (CurrentPixelX >= 0 && CurrentPixelY >= 0 && CurrentPixelX < InputImage.Width && CurrentPixelY < InputImage.Height)
-        {
-            List<Color> NearbyPixels = new List<Color>();
-
-            switch (ComparisonDirection)
-            {
-                case "diag":
-                    NearbyPixels.Add(InputImage.GetPixel(CurrentPixelX - 1, CurrentPixelY - 1));
-                    NearbyPixels.Add(InputImage.GetPixel(CurrentPixelX - 1, CurrentPixelY + 1));
-                    NearbyPixels.Add(InputImage.GetPixel(CurrentPixelX + 1, CurrentPixelY - 1));
-                    NearbyPixels.Add(InputImage.GetPixel(CurrentPixelX + 1, CurrentPixelY + 1));
-                    break;
-
-                case "vert":
-                    NearbyPixels.Add(InputImage.GetPixel(CurrentPixelX, CurrentPixelY - 1));
-                    NearbyPixels.Add(InputImage.GetPixel(CurrentPixelX, CurrentPixelY + 1));
-                    break;
-
-                case "horiz":
-                    NearbyPixels.Add(InputImage.GetPixel(CurrentPixelX - 1, CurrentPixelY));
-                    NearbyPixels.Add(InputImage.GetPixel(CurrentPixelX + 1, CurrentPixelY));
-                    break;
-
-                default:
-                    throw new ArgumentException("passed value for ComparisonDirection parameter must be either 'noise', 'horiz', 'vert', or 'diag'");
-            }
-
-            int AlphaAverage = 0;
-            int RedAverage = 0;
-            int GreenAverage = 0;
-            int BlueAverage = 0;
-
-            for (int i = 0; i < NearbyPixels.Count; i++)
-            {
-                AlphaAverage += NearbyPixels[i].A;
-                RedAverage += NearbyPixels[i].R;
-                GreenAverage += NearbyPixels[i].G;
-                BlueAverage += NearbyPixels[i].B;
-            }
-
-            AlphaAverage /= NearbyPixels.Count;
-            RedAverage /= NearbyPixels.Count;
-            GreenAverage /= NearbyPixels.Count;
-            BlueAverage /= NearbyPixels.Count;
-
-            Color AverageColor = Color.FromArgb(AlphaAverage, RedAverage, GreenAverage, BlueAverage);
-
-            return AverageColor;
-
-        }
-        else
-        {
+        
+        if (CurrentPixelX < 0 || CurrentPixelY < 0 || CurrentPixelX > InputImage.Width || CurrentPixelY > InputImage.Height)
             throw new ArgumentException("Passed X and Y values must be greater than 0 and less than the passed Bitmap's width and height respectively");
+
+        List<Color> NearbyPixels = new List<Color>();
+
+        switch (ComparisonDirection)
+        {
+            case "diag":
+                NearbyPixels.Add(InputImage.GetPixel(CurrentPixelX - 1, CurrentPixelY - 1));
+                NearbyPixels.Add(InputImage.GetPixel(CurrentPixelX - 1, CurrentPixelY + 1));
+                NearbyPixels.Add(InputImage.GetPixel(CurrentPixelX + 1, CurrentPixelY - 1));
+                NearbyPixels.Add(InputImage.GetPixel(CurrentPixelX + 1, CurrentPixelY + 1));
+                break;
+
+            case "vert":
+                NearbyPixels.Add(InputImage.GetPixel(CurrentPixelX, CurrentPixelY - 1));
+                NearbyPixels.Add(InputImage.GetPixel(CurrentPixelX, CurrentPixelY + 1));
+                break;
+
+            case "horiz":
+                NearbyPixels.Add(InputImage.GetPixel(CurrentPixelX - 1, CurrentPixelY));
+                NearbyPixels.Add(InputImage.GetPixel(CurrentPixelX + 1, CurrentPixelY));
+                break;
+
+            default:
+                throw new ArgumentException("passed value for ComparisonDirection parameter must be either 'noise', 'horiz', 'vert', or 'diag'");
         }
+
+        int AlphaAverage = 0;
+        int RedAverage = 0;
+        int GreenAverage = 0;
+        int BlueAverage = 0;
+
+        for (int i = 0; i < NearbyPixels.Count; i++)
+        {
+            AlphaAverage += NearbyPixels[i].A;
+            RedAverage += NearbyPixels[i].R;
+            GreenAverage += NearbyPixels[i].G;
+            BlueAverage += NearbyPixels[i].B;
+        }
+
+        AlphaAverage /= NearbyPixels.Count;
+        RedAverage /= NearbyPixels.Count;
+        GreenAverage /= NearbyPixels.Count;
+        BlueAverage /= NearbyPixels.Count;
+
+        Color AverageColor = Color.FromArgb(AlphaAverage, RedAverage, GreenAverage, BlueAverage);
+
+        return AverageColor;
     }
 
 
@@ -938,81 +922,77 @@ public class ImageProcessing
      */
     private static Bitmap SharpenEdges(Bitmap InputImage)
     {
-        if (InputImage != null)
+        if (InputImage == null)
+            throw new ArgumentException("Passed Bitmap cannot be null");
+
+        // represents how close a pixel r, g, or b value must be to be considered similar
+        double SimilarityRange = 0;  
+        Bitmap ReturnBitmap = (Bitmap) InputImage.Clone();
+
+        // four nested for loops?! there must be a better way to do this. look into improvements.
+        for (int j = 4; j < InputImage.Height - 4; j += 2)
         {
-            // represents how close a pixel r, g, or b value must be to be considered similar
-            double SimilarityRange = 0;  
-            Bitmap ReturnBitmap = (Bitmap) InputImage.Clone();
-
-            // four nested for loops?! there must be a better way to do this. look into improvements.
-            for (int j = 4; j < InputImage.Height - 4; j += 2)
+            for (int i = 4; i < InputImage.Width - 4; i += 2)
             {
-                for (int i = 4; i < InputImage.Width - 4; i += 2)
+                bool[,] SimilarPixels = new bool[3, 3];
+                for (int a = i - 2; a <= i + 2; a += 2)
                 {
-                    bool[,] SimilarPixels = new bool[3, 3];
-                    for (int a = i - 2; a <= i + 2; a += 2)
+                    for (int b = j - 2; b <= j + 2; b += 2)
                     {
-                        for (int b = j - 2; b <= j + 2; b += 2)
-                        {
-                            // set the flag to false by default
-                            SimilarPixels[((a - i) + 2) / 2, ((b - j) + 2) / 2] = false;
+                        // set the flag to false by default
+                        SimilarPixels[((a - i) + 2) / 2, ((b - j) + 2) / 2] = false;
 
-                            // if the pixels a, r, g, and b values are within the similarity range, flag as true
-                            if (InputImage.GetPixel(a, b).A > (InputImage.GetPixel(i, j).A - SimilarityRange) && (InputImage.GetPixel(a, b).A < (InputImage.GetPixel(i, j).A + SimilarityRange)) &&
-                                InputImage.GetPixel(a, b).R > (InputImage.GetPixel(i, j).R - SimilarityRange) && (InputImage.GetPixel(a, b).R < (InputImage.GetPixel(i, j).R + SimilarityRange)) &&
-                                InputImage.GetPixel(a, b).G > (InputImage.GetPixel(i, j).G - SimilarityRange) && (InputImage.GetPixel(a, b).G < (InputImage.GetPixel(i, j).G + SimilarityRange)) &&
-                                InputImage.GetPixel(a, b).B > (InputImage.GetPixel(i, j).B - SimilarityRange) && (InputImage.GetPixel(a, b).B < (InputImage.GetPixel(i, j).B + SimilarityRange)))
-                            {
-                                SimilarPixels[(a - i + 2) / 2, ((b - j) + 2) / 2] = true;
-                            }
+                        // if the pixels a, r, g, and b values are within the similarity range, flag as true
+                        if (InputImage.GetPixel(a, b).A > (InputImage.GetPixel(i, j).A - SimilarityRange) && (InputImage.GetPixel(a, b).A < (InputImage.GetPixel(i, j).A + SimilarityRange)) &&
+                            InputImage.GetPixel(a, b).R > (InputImage.GetPixel(i, j).R - SimilarityRange) && (InputImage.GetPixel(a, b).R < (InputImage.GetPixel(i, j).R + SimilarityRange)) &&
+                            InputImage.GetPixel(a, b).G > (InputImage.GetPixel(i, j).G - SimilarityRange) && (InputImage.GetPixel(a, b).G < (InputImage.GetPixel(i, j).G + SimilarityRange)) &&
+                            InputImage.GetPixel(a, b).B > (InputImage.GetPixel(i, j).B - SimilarityRange) && (InputImage.GetPixel(a, b).B < (InputImage.GetPixel(i, j).B + SimilarityRange)))
+                        {
+                            SimilarPixels[(a - i + 2) / 2, ((b - j) + 2) / 2] = true;
                         }
                     }
+                }
 
-                    // check for '\' edge
-                    if (SimilarPixels[0, 0] && !SimilarPixels[0, 1] && !SimilarPixels[0, 2] && !SimilarPixels[1, 0] && !SimilarPixels[1, 2] && !SimilarPixels[2, 0] && !SimilarPixels[2, 1] && SimilarPixels[2, 2])
-                    {
-                        ReturnBitmap.SetPixel(i - 1, j + 1, InputImage.GetPixel(i, j));
-                        ReturnBitmap.SetPixel(i + 1, j - 1, InputImage.GetPixel(i, j));
-                    }
+                // check for '\' edge
+                if (SimilarPixels[0, 0] && !SimilarPixels[0, 1] && !SimilarPixels[0, 2] && !SimilarPixels[1, 0] && !SimilarPixels[1, 2] && !SimilarPixels[2, 0] && !SimilarPixels[2, 1] && SimilarPixels[2, 2])
+                {
+                    ReturnBitmap.SetPixel(i - 1, j + 1, InputImage.GetPixel(i, j));
+                    ReturnBitmap.SetPixel(i + 1, j - 1, InputImage.GetPixel(i, j));
+                }
 
-                    // check for '/' edge
-                    if (!SimilarPixels[0, 0] && !SimilarPixels[0, 1] && SimilarPixels[0, 2] && !SimilarPixels[1, 0] && !SimilarPixels[1, 2] && SimilarPixels[2, 0] && !SimilarPixels[2, 1] && !SimilarPixels[2, 2])
-                    {
-                        ReturnBitmap.SetPixel(i - 1, j - 1, InputImage.GetPixel(i, j));
-                        ReturnBitmap.SetPixel(i + 1, j + 1, InputImage.GetPixel(i, j));
-                    }
+                // check for '/' edge
+                if (!SimilarPixels[0, 0] && !SimilarPixels[0, 1] && SimilarPixels[0, 2] && !SimilarPixels[1, 0] && !SimilarPixels[1, 2] && SimilarPixels[2, 0] && !SimilarPixels[2, 1] && !SimilarPixels[2, 2])
+                {
+                    ReturnBitmap.SetPixel(i - 1, j - 1, InputImage.GetPixel(i, j));
+                    ReturnBitmap.SetPixel(i + 1, j + 1, InputImage.GetPixel(i, j));
+                }
 
-                    // check for '-' edge
-                    if (!SimilarPixels[0, 0] && !SimilarPixels[0, 1] && !SimilarPixels[0, 2] && SimilarPixels[1, 0] && SimilarPixels[1, 2] && SimilarPixels[2, 0] && !SimilarPixels[2, 1] && !SimilarPixels[2, 2])
-                    {
-                        ReturnBitmap.SetPixel(i - 1, j, InputImage.GetPixel(i, j));
-                        ReturnBitmap.SetPixel(i + 1, j, InputImage.GetPixel(i, j));
-                    }
+                // check for '-' edge
+                if (!SimilarPixels[0, 0] && !SimilarPixels[0, 1] && !SimilarPixels[0, 2] && SimilarPixels[1, 0] && SimilarPixels[1, 2] && SimilarPixels[2, 0] && !SimilarPixels[2, 1] && !SimilarPixels[2, 2])
+                {
+                    ReturnBitmap.SetPixel(i - 1, j, InputImage.GetPixel(i, j));
+                    ReturnBitmap.SetPixel(i + 1, j, InputImage.GetPixel(i, j));
+                }
 
-                    // check for '|' edge
-                    if (!SimilarPixels[0, 0] && SimilarPixels[0, 1] && !SimilarPixels[0, 2] && !SimilarPixels[1, 0] && !SimilarPixels[1, 2] && !SimilarPixels[2, 0] && SimilarPixels[2, 1] && !SimilarPixels[2, 2])
-                    {
-                        ReturnBitmap.SetPixel(i, j + 1, InputImage.GetPixel(i, j));
-                        ReturnBitmap.SetPixel(i, j - 1, InputImage.GetPixel(i, j));
-                    }
+                // check for '|' edge
+                if (!SimilarPixels[0, 0] && SimilarPixels[0, 1] && !SimilarPixels[0, 2] && !SimilarPixels[1, 0] && !SimilarPixels[1, 2] && !SimilarPixels[2, 0] && SimilarPixels[2, 1] && !SimilarPixels[2, 2])
+                {
+                    ReturnBitmap.SetPixel(i, j + 1, InputImage.GetPixel(i, j));
+                    ReturnBitmap.SetPixel(i, j - 1, InputImage.GetPixel(i, j));
+                }
 
-                    // check for 'X' edge
-                    if (SimilarPixels[0, 0] && !SimilarPixels[0, 1] && SimilarPixels[0, 2] && !SimilarPixels[1, 0] && !SimilarPixels[1, 2] && SimilarPixels[2, 0] && !SimilarPixels[2, 1] && SimilarPixels[2, 2])
-                    {
-                        ReturnBitmap.SetPixel(i - 1, j - 1, InputImage.GetPixel(i, j));
-                        ReturnBitmap.SetPixel(i - 1, j + 1, InputImage.GetPixel(i, j));
-                        ReturnBitmap.SetPixel(i + 1, j - 1, InputImage.GetPixel(i, j));
-                        ReturnBitmap.SetPixel(i + 1, j + 1, InputImage.GetPixel(i, j));
-                    }
+                // check for 'X' edge
+                if (SimilarPixels[0, 0] && !SimilarPixels[0, 1] && SimilarPixels[0, 2] && !SimilarPixels[1, 0] && !SimilarPixels[1, 2] && SimilarPixels[2, 0] && !SimilarPixels[2, 1] && SimilarPixels[2, 2])
+                {
+                    ReturnBitmap.SetPixel(i - 1, j - 1, InputImage.GetPixel(i, j));
+                    ReturnBitmap.SetPixel(i - 1, j + 1, InputImage.GetPixel(i, j));
+                    ReturnBitmap.SetPixel(i + 1, j - 1, InputImage.GetPixel(i, j));
+                    ReturnBitmap.SetPixel(i + 1, j + 1, InputImage.GetPixel(i, j));
                 }
             }
+        }
 
-            return ReturnBitmap;
-        }
-        else
-        {
-            throw new ArgumentException("Passed Bitmap cannot be null");
-        }
+        return ReturnBitmap;
     }
 
 
@@ -1029,27 +1009,23 @@ public class ImageProcessing
     private static void ConvertImageToAscii(Bitmap InputImage, string PassedFileName)
     {
 
+        if (InputImage == null)
+            throw new ArgumentException("Passed Bitmap cannot be null");
+
         string OutputAsciiChars = " _.,-=+:;abc!?0123456789$W#@Ñ";
         //string OutputAsciiChars = "Ñ@#W$9876543210?!abc;:+=-,._ ";
 
-        if (InputImage != null)
-        {
-            char[] OutputChars = OutputAsciiChars.ToCharArray();
-            double ConversionValue = (256.0 / (OutputChars.Length - 1));
-            StreamWriter OutputFile = File.CreateText(PassedFileName);
+        char[] OutputChars = OutputAsciiChars.ToCharArray();
+        double ConversionValue = (256.0 / (OutputChars.Length - 1));
+        StreamWriter OutputFile = File.CreateText(PassedFileName);
 
-            for (int j = 0; j < InputImage.Height; j++)
-            {
-                for (int i = 0; i < InputImage.Width; i++)
-                {
-                        OutputFile.Write(" " + OutputChars[(int) ((FindBrightnessAsInt(InputImage, i, j) / ConversionValue))]);
-                }
-                OutputFile.Write("\n");
-            }
-        }
-        else
+        for (int j = 0; j < InputImage.Height; j++)
         {
-            throw new ArgumentException("Passed Bitmap cannot be null");
+            for (int i = 0; i < InputImage.Width; i++)
+            {
+                    OutputFile.Write(" " + OutputChars[(int) ((FindBrightnessAsInt(InputImage, i, j) / ConversionValue))]);
+            }
+            OutputFile.Write("\n");
         }
     }
 
@@ -1089,76 +1065,72 @@ public class ImageProcessing
      */
     private static char[,] FindEdges(Bitmap InputImage)
     {
-        if (InputImage != null)
+        if (InputImage == null)
+            throw new ArgumentException("Passed Bitmap cannot be null");
+
+        // represents how close a pixel r, g, or b value must be to be considered similar
+        double SimilarityRange = 5;  
+        char[,] ReturnArray = new char[InputImage.Width, InputImage.Height];
+
+        // four nested for loops?! there must be a better way to do this. look into improvements.
+        for (int j = 1; j < InputImage.Height - 1; j ++)
         {
-            // represents how close a pixel r, g, or b value must be to be considered similar
-            double SimilarityRange = 5;  
-            char[,] ReturnArray = new char[InputImage.Width, InputImage.Height];
-
-            // four nested for loops?! there must be a better way to do this. look into improvements.
-            for (int j = 1; j < InputImage.Height - 1; j ++)
+            for (int i = 1; i < InputImage.Width - 1; i++)
             {
-                for (int i = 1; i < InputImage.Width - 1; i++)
+                // set edge flag character to empty space by default
+                ReturnArray[i, j] = ' ';
+
+                bool[,] SimilarPixels = new bool[3, 3];
+                for (int a = i - 1; a <= i + 1; a++)
                 {
-                    // set edge flag character to empty space by default
-                    ReturnArray[i, j] = ' ';
-
-                    bool[,] SimilarPixels = new bool[3, 3];
-                    for (int a = i - 1; a <= i + 1; a++)
+                    for (int b = j - 1; b <= j + 1; b++)
                     {
-                        for (int b = j - 1; b <= j + 1; b++)
-                        {
-                            // set the flag to false by default
-                            SimilarPixels[(a - i) + 1, (b - j) + 1] = false;
+                        // set the flag to false by default
+                        SimilarPixels[(a - i) + 1, (b - j) + 1] = false;
 
-                            // if the pixels a, r, g, and b values are within the similarity range, flag as true
-                            if ((InputImage.GetPixel(a, b).A > (InputImage.GetPixel(i, j).A - SimilarityRange) && (InputImage.GetPixel(a, b).A < (InputImage.GetPixel(i, j).A + SimilarityRange))) &&
-                                (InputImage.GetPixel(a, b).R > (InputImage.GetPixel(i, j).R - SimilarityRange) && (InputImage.GetPixel(a, b).R < (InputImage.GetPixel(i, j).R + SimilarityRange))) &&
-                                (InputImage.GetPixel(a, b).G > (InputImage.GetPixel(i, j).G - SimilarityRange) && (InputImage.GetPixel(a, b).G < (InputImage.GetPixel(i, j).G + SimilarityRange))) &&
-                                (InputImage.GetPixel(a, b).B > (InputImage.GetPixel(i, j).B - SimilarityRange) && (InputImage.GetPixel(a, b).B < (InputImage.GetPixel(i, j).B + SimilarityRange))))
-                            {
-                                SimilarPixels[(a - i) + 1, (b - j) + 1] = true;
-                            }
+                        // if the pixels a, r, g, and b values are within the similarity range, flag as true
+                        if (InputImage.GetPixel(a, b).A > (InputImage.GetPixel(i, j).A - SimilarityRange) && (InputImage.GetPixel(a, b).A < (InputImage.GetPixel(i, j).A + SimilarityRange)) &&
+                            InputImage.GetPixel(a, b).R > (InputImage.GetPixel(i, j).R - SimilarityRange) && (InputImage.GetPixel(a, b).R < (InputImage.GetPixel(i, j).R + SimilarityRange)) &&
+                            InputImage.GetPixel(a, b).G > (InputImage.GetPixel(i, j).G - SimilarityRange) && (InputImage.GetPixel(a, b).G < (InputImage.GetPixel(i, j).G + SimilarityRange)) &&
+                            InputImage.GetPixel(a, b).B > (InputImage.GetPixel(i, j).B - SimilarityRange) && (InputImage.GetPixel(a, b).B < (InputImage.GetPixel(i, j).B + SimilarityRange)))
+                        {
+                            SimilarPixels[(a - i) + 1, (b - j) + 1] = true;
                         }
                     }
+                }
 
-                    // check for '\' edge
-                    if (SimilarPixels[0, 0] && !SimilarPixels[0, 1] && !SimilarPixels[0, 2] && !SimilarPixels[1, 0] && !SimilarPixels[1, 2] && !SimilarPixels[2, 0] && !SimilarPixels[2, 1] && SimilarPixels[2, 2])
-                    {
-                        ReturnArray[i, j] = '\\';
-                    }
+                // check for '\' edge
+                if (SimilarPixels[0, 0] && !SimilarPixels[0, 1] && !SimilarPixels[0, 2] && !SimilarPixels[1, 0] && !SimilarPixels[1, 2] && !SimilarPixels[2, 0] && !SimilarPixels[2, 1] && SimilarPixels[2, 2])
+                {
+                    ReturnArray[i, j] = '\\';
+                }
 
-                    // check for '/' edge
-                    if (!SimilarPixels[0, 0] && !SimilarPixels[0, 1] && SimilarPixels[0, 2] && !SimilarPixels[1, 0] && !SimilarPixels[1, 2] && SimilarPixels[2, 0] && !SimilarPixels[2, 1] && !SimilarPixels[2, 2])
-                    {
-                        ReturnArray[i, j] = '/';
-                    }
+                // check for '/' edge
+                if (!SimilarPixels[0, 0] && !SimilarPixels[0, 1] && SimilarPixels[0, 2] && !SimilarPixels[1, 0] && !SimilarPixels[1, 2] && SimilarPixels[2, 0] && !SimilarPixels[2, 1] && !SimilarPixels[2, 2])
+                {
+                    ReturnArray[i, j] = '/';
+                }
 
-                    // check for '-' edge
-                    if (!SimilarPixels[0, 0] && !SimilarPixels[0, 1] && !SimilarPixels[0, 2] && SimilarPixels[1, 0] && SimilarPixels[1, 2] && SimilarPixels[2, 0] && !SimilarPixels[2, 1] && !SimilarPixels[2, 2])
-                    {
-                        ReturnArray[i, j] = '-';
-                    }
+                // check for '-' edge
+                if (!SimilarPixels[0, 0] && !SimilarPixels[0, 1] && !SimilarPixels[0, 2] && SimilarPixels[1, 0] && SimilarPixels[1, 2] && SimilarPixels[2, 0] && !SimilarPixels[2, 1] && !SimilarPixels[2, 2])
+                {
+                    ReturnArray[i, j] = '-';
+                }
 
-                    // check for '|' edge
-                    if (!SimilarPixels[0, 0] && SimilarPixels[0, 1] && !SimilarPixels[0, 2] && !SimilarPixels[1, 0] && !SimilarPixels[1, 2] && !SimilarPixels[2, 0] && SimilarPixels[2, 1] && !SimilarPixels[2, 2])
-                    {
-                        ReturnArray[i, j] = '|';
-                    }
+                // check for '|' edge
+                if (!SimilarPixels[0, 0] && SimilarPixels[0, 1] && !SimilarPixels[0, 2] && !SimilarPixels[1, 0] && !SimilarPixels[1, 2] && !SimilarPixels[2, 0] && SimilarPixels[2, 1] && !SimilarPixels[2, 2])
+                {
+                    ReturnArray[i, j] = '|';
+                }
 
-                    // check for 'X' edge
-                    if (SimilarPixels[0, 0] && !SimilarPixels[0, 1] && SimilarPixels[0, 2] && !SimilarPixels[1, 0] && !SimilarPixels[1, 2] && SimilarPixels[2, 0] && !SimilarPixels[2, 1] && SimilarPixels[2, 2])
-                    {
-                        ReturnArray[i, j] = 'X';
-                    }
+                // check for 'X' edge
+                if (SimilarPixels[0, 0] && !SimilarPixels[0, 1] && SimilarPixels[0, 2] && !SimilarPixels[1, 0] && !SimilarPixels[1, 2] && SimilarPixels[2, 0] && !SimilarPixels[2, 1] && SimilarPixels[2, 2])
+                {
+                    ReturnArray[i, j] = 'X';
                 }
             }
+        }
 
-            return ReturnArray;
-        }
-        else
-        {
-            throw new ArgumentException("Passed Bitmap cannot be null");
-        }
+        return ReturnArray;
     }
 }
